@@ -40,7 +40,18 @@ func login() {
 		log.Fatal(err)
 	}
 	defer response.Body.Close()
-	all, err := ioutil.ReadAll(response.Body)
-	println(string(all))
-	println(err)
+	if response.StatusCode != 200 {
+		log.Fatal("Authentication failure")
+	}
+	body, err := ioutil.ReadAll(response.Body)
+	if err != nil {
+		log.Fatal(err)
+	}
+	var token = string(body)
+	if "Wrong credentials" == token {
+		log.Fatal("Wrong credentials")
+	}
+	configuration.InstanceToken = &token
+	saveConfiguration(*configuration)
+	println("Success!")
 }

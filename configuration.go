@@ -18,15 +18,7 @@ type Configuration struct {
 
 func createConfiguration(instanceURL string) {
 	var configuration = Configuration{InstanceURL: &instanceURL}
-	userCacheDir, _ := os.UserCacheDir()
-	bytes, err := json.Marshal(configuration)
-	if err != nil {
-		log.Fatal(err)
-	}
-	err = ioutil.WriteFile(filepath.Join(userCacheDir, "lega-uploader", "config.json"), bytes, os.ModePerm)
-	if err != nil {
-		log.Fatal(err)
-	}
+	saveConfiguration(configuration)
 }
 
 func loadConfiguration() (*Configuration, error) {
@@ -45,4 +37,16 @@ func loadConfiguration() (*Configuration, error) {
 		return nil, err
 	}
 	return &configuration, nil
+}
+
+func saveConfiguration(configuration Configuration) {
+	userCacheDir, _ := os.UserCacheDir()
+	bytes, err := json.Marshal(configuration)
+	if err != nil {
+		log.Fatal(err)
+	}
+	err = ioutil.WriteFile(filepath.Join(userCacheDir, "lega-uploader", "config.json"), bytes, os.ModePerm)
+	if err != nil {
+		log.Fatal(err)
+	}
 }
