@@ -19,8 +19,9 @@ type Configuration struct {
 
 func createConfiguration(instanceURL string) {
 	configuration := Configuration{}
-	*configuration.InstanceURL = instanceURL
-	*configuration.ChunkSize = 200
+	configuration.InstanceURL = &instanceURL
+	var defaultChunkSize int64 = 200
+	configuration.ChunkSize = &defaultChunkSize
 	saveConfiguration(configuration)
 }
 
