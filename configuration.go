@@ -4,20 +4,23 @@ import (
 	"encoding/json"
 	"io/ioutil"
 	"log"
-
-	//"encoding/json"
 	"os"
 	"path/filepath"
 )
 
 type Configuration struct {
-	InstanceURL   *string
+	InstanceURL *string
+
 	InstanceToken *string
 	AaiToken      *string
+
+	ChunkSize *int64
 }
 
 func createConfiguration(instanceURL string) {
-	var configuration = Configuration{InstanceURL: &instanceURL}
+	var configuration = Configuration{}
+	*configuration.InstanceURL = instanceURL
+	*configuration.ChunkSize = 200
 	saveConfiguration(configuration)
 }
 
