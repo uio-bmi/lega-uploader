@@ -30,7 +30,7 @@ func login() {
 	if err != nil {
 		log.Fatal(err)
 	}
-	var token = string(body)
+	token := string(body)
 	if "Wrong credentials" == token {
 		log.Fatal("Wrong credentials")
 	}
