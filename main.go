@@ -9,11 +9,15 @@ import (
 func main() {
 	initialize()
 
-	loginFlag := flag.Bool("login", false, "Logs you in.")
-	uploadFlag := flag.Bool("upload", false, "Uploads file.")
+	loginFlag := flag.Bool("login", false, "Log in.")
+	uploadFlag := flag.Bool("upload", false, "Upload files or directories.")
+	resumablesFlag := flag.Bool("resumables", false, "List unfinished resumable uploads.")
 	flag.Parse()
 	if *loginFlag {
 		login()
+	}
+	if *resumablesFlag {
+		resumables()
 	}
 	if *uploadFlag {
 		args := os.Args[2:]

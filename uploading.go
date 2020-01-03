@@ -4,11 +4,11 @@ import (
 	"bytes"
 	"crypto/md5"
 	"encoding/hex"
-	"encoding/json"
 	"errors"
-	"fmt"
+	"github.com/buger/jsonparser"
 	"github.com/cheggaaa/pb/v3"
 	"io"
+	"io/ioutil"
 	"net/http"
 	"os"
 	"path/filepath"
@@ -102,17 +102,14 @@ func uploadFile(file *os.File, stat os.FileInfo) error {
 		if response.StatusCode != 200 {
 			return errors.New(response.Status)
 		}
-		jsonResponse := make(map[string]interface{})
-		decoder := json.NewDecoder(response.Body)
-		err = decoder.Decode(&jsonResponse)
+		body, err := ioutil.ReadAll(response.Body)
 		if err != nil {
 			return err
 		}
-		statusCode := fmt.Sprint(jsonResponse["statusCode"])
-		if statusCode != "201" {
-			return errors.New("Status code: " + statusCode)
+		uploadId, err = jsonparser.GetString(body, "id")
+		if err != nil {
+			return err
 		}
-		uploadId = fmt.Sprint(jsonResponse["id"])
 		bar.Add64(int64(read) * 100 / totalSize)
 	}
 	bar.SetCurrent(100)
