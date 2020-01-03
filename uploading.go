@@ -15,6 +15,13 @@ import (
 )
 
 func upload(path string) error {
+	var err error
+	if !filepath.IsAbs(path) {
+		path, err = filepath.Abs(path)
+		if err != nil {
+			return err
+		}
+	}
 	file, err := os.Open(path)
 	if err != nil {
 		return err
@@ -31,7 +38,26 @@ func upload(path string) error {
 	}
 }
 
+func uploadFolder(folder *os.File) error {
+	readdir, err := folder.Readdir(-1)
+	if err != nil {
+		return err
+	}
+	for _, file := range readdir {
+		abs, err := filepath.Abs(filepath.Join(folder.Name(), file.Name()))
+		if err != nil {
+			return err
+		}
+		err = upload(abs)
+		if err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
 func uploadFile(file *os.File, stat os.FileInfo) error {
+	print("Uploading file: " + file.Name())
 	configuration, err := loadConfiguration()
 	if err != nil {
 		return err
@@ -51,23 +77,24 @@ func uploadFile(file *os.File, stat os.FileInfo) error {
 		}
 		chunk := buffer[:read]
 		sum := md5.Sum(chunk)
-		checksum := hex.EncodeToString(sum[:16])
-		request, err := http.NewRequest("PATCH", *configuration.InstanceURL+"/stream/"+fileName, bytes.NewReader(chunk))
-		if err != nil {
-			return err
-		}
-		request.Header.Add("Authorization", "Bearer "+*configuration.InstanceToken)
-		query := request.URL.Query()
+		params := map[string]string{
+			"chunk": strconv.Itoa(i),
+			"md5":   hex.EncodeToString(sum[:16])}
 		if i != 1 {
-			query.Add("uploadId", uploadId)
+			params["uploadId"] = uploadId
 		}
-		query.Add("chunk", strconv.Itoa(i))
-		query.Add("md5", checksum)
-		request.URL.RawQuery = query.Encode()
-		response, err := http.DefaultClient.Do(request)
+		response, err := doRequest(http.MethodPatch,
+			*configuration.InstanceURL+"/stream/"+fileName,
+			bytes.NewReader(chunk),
+			map[string]string{"Authorization": "Bearer " + *configuration.InstanceToken},
+			params,
+			nil,
+			nil)
 		if err != nil {
 			return err
 		}
+		//noinspection GoDeferInLoop
+		defer response.Body.Close()
 		if response.StatusCode != 200 {
 			return errors.New(response.Status)
 		}
@@ -90,38 +117,23 @@ func uploadFile(file *os.File, stat os.FileInfo) error {
 		return err
 	}
 	checksum := hex.EncodeToString(hashFunction.Sum(nil)[:16])
-	request, err := http.NewRequest("PATCH", *configuration.InstanceURL+"/stream/"+fileName, bytes.NewReader(buffer))
+	response, err := doRequest(http.MethodPatch,
+		*configuration.InstanceURL+"/stream/"+fileName,
+		nil,
+		map[string]string{"Authorization": "Bearer " + *configuration.InstanceToken},
+		map[string]string{"uploadId": uploadId,
+			"chunk":    "end",
+			"fileSize": strconv.FormatInt(stat.Size(), 10),
+			"md5":      checksum},
+		nil,
+		nil)
 	if err != nil {
 		return err
 	}
-	request.Header.Add("Authorization", "Bearer "+*configuration.InstanceToken)
-	query := request.URL.Query()
-	query.Add("uploadId", uploadId)
-	query.Add("chunk", "end")
-	query.Add("fileSize", strconv.FormatInt(stat.Size(), 10))
-	query.Add("md5", checksum)
-	request.URL.RawQuery = query.Encode()
-	_, err = http.DefaultClient.Do(request)
-	if err != nil {
-		return err
+	defer response.Body.Close()
+	if response.StatusCode != 200 {
+		return errors.New(response.Status)
 	}
-	return nil
-}
-
-func uploadFolder(folder *os.File) error {
-	readdir, err := folder.Readdir(-1)
-	if err != nil {
-		return err
-	}
-	for _, file := range readdir {
-		abs, err := filepath.Abs(filepath.Join(folder.Name(), file.Name()))
-		if err != nil {
-			return err
-		}
-		err = upload(abs)
-		if err != nil {
-			return err
-		}
-	}
+	println(" ✅ ")
 	return nil
 }
