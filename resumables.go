@@ -9,6 +9,10 @@ import (
 	"strings"
 )
 
+//func resume() error {
+//	return nil
+//}
+
 func resumables() {
 	configuration, _ := loadConfiguration()
 	response, err := doRequest(http.MethodGet,
@@ -32,7 +36,7 @@ func resumables() {
 	_, err = jsonparser.ArrayEach(body,
 		func(value []byte, dataType jsonparser.ValueType, offset int, err error) {
 			fileName, _ := jsonparser.GetString(value, "fileName")
-			size, _ := jsonparser.GetInt(value, "previousOffset")
+			size, _ := jsonparser.GetInt(value, "nextOffset")
 			println(fileName[strings.Index(fileName, "-")+1:] + "\t (" + strconv.FormatInt(size, 10) + " bytes uploaded)")
 		},
 		"resumables")

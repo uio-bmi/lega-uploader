@@ -35,7 +35,7 @@ func upload(path string) error {
 	if stat.IsDir() {
 		return uploadFolder(file)
 	} else {
-		return uploadFile(file, stat)
+		return uploadFile(file, stat, nil, 0, 1)
 	}
 }
 
@@ -57,7 +57,7 @@ func uploadFolder(folder *os.File) error {
 	return nil
 }
 
-func uploadFile(file *os.File, stat os.FileInfo) error {
+func uploadFile(file *os.File, stat os.FileInfo, uploadId *string, offset int64, startChunk int64) error {
 	totalSize := stat.Size()
 	println("Uploading file: " + file.Name() + " (" + strconv.FormatInt(totalSize, 10) + " bytes)")
 	bar := pb.StartNew(100)
@@ -68,10 +68,13 @@ func uploadFile(file *os.File, stat os.FileInfo) error {
 	}
 
 	fileName := filepath.Base(file.Name())
-	var uploadId string
 
+	_, err = file.Seek(offset, 0)
+	if err != nil {
+		return err
+	}
 	buffer := make([]byte, *configuration.ChunkSize*1024*1024)
-	for i := 1; true; i++ {
+	for i := startChunk; true; i++ {
 		read, err := file.Read(buffer)
 		if err != nil {
 			if err != io.EOF {
@@ -82,10 +85,10 @@ func uploadFile(file *os.File, stat os.FileInfo) error {
 		chunk := buffer[:read]
 		sum := md5.Sum(chunk)
 		params := map[string]string{
-			"chunk": strconv.Itoa(i),
+			"chunk": strconv.FormatInt(i, 10),
 			"md5":   hex.EncodeToString(sum[:16])}
 		if i != 1 {
-			params["uploadId"] = uploadId
+			params["uploadId"] = *uploadId
 		}
 		response, err := doRequest(http.MethodPatch,
 			*configuration.InstanceURL+"/stream/"+fileName,
@@ -106,7 +109,10 @@ func uploadFile(file *os.File, stat os.FileInfo) error {
 		if err != nil {
 			return err
 		}
-		uploadId, err = jsonparser.GetString(body, "id")
+		if uploadId == nil {
+			uploadId = new(string)
+		}
+		*uploadId, err = jsonparser.GetString(body, "id")
 		if err != nil {
 			return err
 		}
@@ -123,7 +129,7 @@ func uploadFile(file *os.File, stat os.FileInfo) error {
 		*configuration.InstanceURL+"/stream/"+fileName,
 		nil,
 		map[string]string{"Authorization": "Bearer " + *configuration.InstanceToken},
-		map[string]string{"uploadId": uploadId,
+		map[string]string{"uploadId": *uploadId,
 			"chunk":    "end",
 			"fileSize": strconv.FormatInt(totalSize, 10),
 			"md5":      checksum},
