@@ -7,6 +7,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"github.com/cheggaaa/pb/v3"
 	"io"
 	"net/http"
 	"os"
@@ -57,7 +58,10 @@ func uploadFolder(folder *os.File) error {
 }
 
 func uploadFile(file *os.File, stat os.FileInfo) error {
-	print("Uploading file: " + file.Name())
+	totalSize := stat.Size()
+	println("Uploading file: " + file.Name() + " (" + strconv.FormatInt(totalSize, 10) + " bytes)")
+	bar := pb.StartNew(100)
+	bar.Start()
 	configuration, err := loadConfiguration()
 	if err != nil {
 		return err
@@ -66,7 +70,7 @@ func uploadFile(file *os.File, stat os.FileInfo) error {
 	fileName := filepath.Base(file.Name())
 	var uploadId string
 
-	buffer := make([]byte, *configuration.ChunkSize)
+	buffer := make([]byte, *configuration.ChunkSize*1024*1024)
 	for i := 1; true; i++ {
 		read, err := file.Read(buffer)
 		if err != nil {
@@ -109,8 +113,9 @@ func uploadFile(file *os.File, stat os.FileInfo) error {
 			return errors.New("Status code: " + statusCode)
 		}
 		uploadId = fmt.Sprint(jsonResponse["id"])
+		bar.Add64(int64(read) * 100 / totalSize)
 	}
-
+	bar.SetCurrent(100)
 	hashFunction := md5.New()
 	_, err = io.Copy(hashFunction, file)
 	if err != nil {
@@ -123,7 +128,7 @@ func uploadFile(file *os.File, stat os.FileInfo) error {
 		map[string]string{"Authorization": "Bearer " + *configuration.InstanceToken},
 		map[string]string{"uploadId": uploadId,
 			"chunk":    "end",
-			"fileSize": strconv.FormatInt(stat.Size(), 10),
+			"fileSize": strconv.FormatInt(totalSize, 10),
 			"md5":      checksum},
 		nil,
 		nil)
@@ -134,6 +139,6 @@ func uploadFile(file *os.File, stat os.FileInfo) error {
 	if response.StatusCode != 200 {
 		return errors.New(response.Status)
 	}
-	println(" ✅ ")
+	bar.Finish()
 	return nil
 }
