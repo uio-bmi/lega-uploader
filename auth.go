@@ -9,7 +9,7 @@ import (
 )
 
 func login() {
-	configuration, _ := loadConfiguration()
+	configuration := loadConfiguration()
 	println("Username: ")
 	var username string
 	_, _ = fmt.Scanln(&username)

@@ -28,7 +28,7 @@ func resumables() {
 }
 
 func getResumables() (*[]Resumable, error) {
-	configuration, _ := loadConfiguration()
+	configuration := loadConfiguration()
 	response, err := doRequest(http.MethodGet,
 		*configuration.InstanceURL+"/resumables",
 		nil,

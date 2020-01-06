@@ -77,14 +77,11 @@ func uploadFile(file *os.File, stat os.FileInfo, uploadId *string, offset int64,
 	bar := pb.StartNew(100)
 	bar.SetCurrent(offset * 100 / totalSize)
 	bar.Start()
-	configuration, err := loadConfiguration()
-	if err != nil {
-		return err
-	}
+	configuration := loadConfiguration()
 
 	fileName := filepath.Base(file.Name())
 
-	_, err = file.Seek(offset, 0)
+	_, err := file.Seek(offset, 0)
 	if err != nil {
 		return err
 	}

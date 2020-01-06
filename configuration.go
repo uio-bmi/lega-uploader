@@ -2,10 +2,12 @@ package main
 
 import (
 	"encoding/json"
+	"fmt"
 	"io/ioutil"
 	"log"
 	"os"
 	"path/filepath"
+	"strings"
 )
 
 type Configuration struct {
@@ -17,6 +19,13 @@ type Configuration struct {
 	ChunkSize *int64
 }
 
+func configure() {
+	println("Instance URL: ")
+	var instanceURL string
+	_, _ = fmt.Scanln(&instanceURL)
+	createConfiguration(strings.TrimRight(instanceURL, "/"))
+}
+
 func createConfiguration(instanceURL string) {
 	configuration := Configuration{}
 	configuration.InstanceURL = &instanceURL
@@ -25,22 +34,22 @@ func createConfiguration(instanceURL string) {
 	saveConfiguration(configuration)
 }
 
-func loadConfiguration() (*Configuration, error) {
+func loadConfiguration() *Configuration {
 	userCacheDir, _ := os.UserCacheDir()
 	configFile, err := os.Open(filepath.Join(userCacheDir, "lega-uploader", "config.json"))
 	if err != nil {
-		return nil, err
+		log.Fatal(err)
 	}
 	defer configFile.Close()
 	configFileContent, err := ioutil.ReadAll(configFile)
 	if err != nil {
-		return nil, err
+		log.Fatal(err)
 	}
 	var configuration Configuration
 	if err = json.Unmarshal(configFileContent, &configuration); err != nil {
-		return nil, err
+		log.Fatal(err)
 	}
-	return &configuration, nil
+	return &configuration
 }
 
 func saveConfiguration(configuration Configuration) {

@@ -7,13 +7,15 @@ import (
 )
 
 func main() {
-	initialize()
-
+	configFlag := flag.Bool("config", false, "Configure the client.")
 	loginFlag := flag.Bool("login", false, "Log in.")
 	uploadFlag := flag.Bool("upload", false, "Upload files or directories.")
 	resumablesFlag := flag.Bool("resumables", false, "List unfinished resumable uploads.")
 	resumeFlag := flag.Bool("resume", false, "Resume files or directories upload.")
 	flag.Parse()
+	if *configFlag {
+		configure()
+	}
 	if *loginFlag {
 		login()
 	}
@@ -35,11 +37,5 @@ func main() {
 				log.Fatal(err)
 			}
 		}
-	}
-}
-
-func initialize() {
-	if _, err := loadConfiguration(); err != nil {
-		createConfiguration("https://localhost")
 	}
 }
