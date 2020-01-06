@@ -6,7 +6,6 @@ import (
 	"io/ioutil"
 	"log"
 	"net/http"
-	"syscall"
 )
 
 func login() {
@@ -15,7 +14,7 @@ func login() {
 	var username string
 	_, _ = fmt.Scanln(&username)
 	println("Password: ")
-	bytePassword, err := terminal.ReadPassword(syscall.Stdin)
+	bytePassword, err := terminal.ReadPassword(0)
 	password := string(bytePassword)
 	response, err := doRequest(http.MethodGet, *configuration.InstanceURL+"/cega", nil, nil, nil, &username, &password)
 	if err != nil {

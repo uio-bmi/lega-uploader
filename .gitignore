@@ -3,6 +3,7 @@
 
 ### Go ###
 # Binaries for programs and plugins
+/dist
 lega-uploader
 *.exe
 *.exe~

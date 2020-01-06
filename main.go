@@ -20,8 +20,8 @@ func main() {
 	if *resumablesFlag {
 		resumables()
 	}
-	args := os.Args[2:]
 	if *uploadFlag {
+		args := os.Args[2:]
 		for _, file := range args {
 			if err := upload(file, false); err != nil {
 				log.Fatal(err)
@@ -29,6 +29,7 @@ func main() {
 		}
 	}
 	if *resumeFlag {
+		args := os.Args[2:]
 		for _, file := range args {
 			if err := upload(file, true); err != nil {
 				log.Fatal(err)
