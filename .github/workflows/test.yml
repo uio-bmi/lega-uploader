@@ -1,5 +1,7 @@
-name: Go
+name: Test
+
 on: [push]
+
 jobs:
 
   build:
