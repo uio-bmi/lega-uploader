@@ -2,7 +2,9 @@ package main
 
 import (
 	"errors"
+	"fmt"
 	"github.com/buger/jsonparser"
+	"github.com/logrusorgru/aurora"
 	"io/ioutil"
 	"log"
 	"net/http"
@@ -20,10 +22,10 @@ type Resumable struct {
 func resumables() {
 	resumables, err := getResumables()
 	if err != nil {
-		log.Fatal(err)
+		log.Fatal(aurora.Red(err))
 	}
 	for _, resumable := range *resumables {
-		println(resumable.name + "\t (" + strconv.FormatInt(resumable.size, 10) + " bytes uploaded)")
+		fmt.Println(resumable.name + "\t (" + strconv.FormatInt(resumable.size, 10) + " bytes uploaded)")
 	}
 }
 

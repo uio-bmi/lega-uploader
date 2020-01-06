@@ -5,6 +5,7 @@ import (
 	"crypto/md5"
 	"encoding/hex"
 	"errors"
+	"fmt"
 	"github.com/buger/jsonparser"
 	"github.com/cheggaaa/pb/v3"
 	"io"
@@ -73,7 +74,7 @@ func uploadFolder(folder *os.File, resume bool) error {
 
 func uploadFile(file *os.File, stat os.FileInfo, uploadId *string, offset int64, startChunk int64) error {
 	totalSize := stat.Size()
-	println("Uploading file: " + file.Name() + " (" + strconv.FormatInt(totalSize, 10) + " bytes)")
+	fmt.Println("Uploading file: " + file.Name() + " (" + strconv.FormatInt(totalSize, 10) + " bytes)")
 	bar := pb.StartNew(100)
 	bar.SetCurrent(offset * 100 / totalSize)
 	bar.Start()

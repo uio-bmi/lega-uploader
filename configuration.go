@@ -3,6 +3,7 @@ package main
 import (
 	"encoding/json"
 	"fmt"
+	"github.com/logrusorgru/aurora"
 	"io/ioutil"
 	"log"
 	"os"
@@ -20,7 +21,7 @@ type Configuration struct {
 }
 
 func configure() {
-	println("Instance URL: ")
+	fmt.Println(aurora.Yellow("Instance URL: "))
 	var instanceURL string
 	_, _ = fmt.Scanln(&instanceURL)
 	createConfiguration(strings.TrimRight(instanceURL, "/"))
@@ -38,16 +39,16 @@ func loadConfiguration() *Configuration {
 	userCacheDir, _ := os.UserCacheDir()
 	configFile, err := os.Open(filepath.Join(userCacheDir, "lega-uploader", "config.json"))
 	if err != nil {
-		log.Fatal(err)
+		log.Fatal(aurora.Red(err))
 	}
 	defer configFile.Close()
 	configFileContent, err := ioutil.ReadAll(configFile)
 	if err != nil {
-		log.Fatal(err)
+		log.Fatal(aurora.Red(err))
 	}
 	var configuration Configuration
 	if err = json.Unmarshal(configFileContent, &configuration); err != nil {
-		log.Fatal(err)
+		log.Fatal(aurora.Red(err))
 	}
 	return &configuration
 }
@@ -56,10 +57,10 @@ func saveConfiguration(configuration Configuration) {
 	userCacheDir, _ := os.UserCacheDir()
 	bytes, err := json.Marshal(configuration)
 	if err != nil {
-		log.Fatal(err)
+		log.Fatal(aurora.Red(err))
 	}
 	err = ioutil.WriteFile(filepath.Join(userCacheDir, "lega-uploader", "config.json"), bytes, os.ModePerm)
 	if err != nil {
-		log.Fatal(err)
+		log.Fatal(aurora.Red(err))
 	}
 }

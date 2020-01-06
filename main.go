@@ -2,6 +2,7 @@ package main
 
 import (
 	"flag"
+	"github.com/logrusorgru/aurora"
 	"log"
 	"os"
 )
@@ -26,7 +27,7 @@ func main() {
 		args := os.Args[2:]
 		for _, file := range args {
 			if err := upload(file, false); err != nil {
-				log.Fatal(err)
+				log.Fatal(aurora.Red(err))
 			}
 		}
 	}
@@ -34,7 +35,7 @@ func main() {
 		args := os.Args[2:]
 		for _, file := range args {
 			if err := upload(file, true); err != nil {
-				log.Fatal(err)
+				log.Fatal(aurora.Red(err))
 			}
 		}
 	}
