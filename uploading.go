@@ -15,7 +15,7 @@ import (
 	"strconv"
 )
 
-func upload(path string) error {
+func upload(path string, resume bool) error {
 	var err error
 	if !filepath.IsAbs(path) {
 		path, err = filepath.Abs(path)
@@ -33,13 +33,27 @@ func upload(path string) error {
 		return err
 	}
 	if stat.IsDir() {
-		return uploadFolder(file)
+		return uploadFolder(file, resume)
 	} else {
-		return uploadFile(file, stat, nil, 0, 1)
+		if resume {
+			fileName := filepath.Base(file.Name())
+			resumables, err := getResumables()
+			if err != nil {
+				return err
+			}
+			for _, resumable := range *resumables {
+				if resumable.name == fileName {
+					return uploadFile(file, stat, &resumable.id, resumable.size, resumable.chunk)
+				}
+			}
+			return nil
+		} else {
+			return uploadFile(file, stat, nil, 0, 1)
+		}
 	}
 }
 
-func uploadFolder(folder *os.File) error {
+func uploadFolder(folder *os.File, resume bool) error {
 	readdir, err := folder.Readdir(-1)
 	if err != nil {
 		return err
@@ -49,7 +63,7 @@ func uploadFolder(folder *os.File) error {
 		if err != nil {
 			return err
 		}
-		err = upload(abs)
+		err = upload(abs, resume)
 		if err != nil {
 			return err
 		}
@@ -61,6 +75,7 @@ func uploadFile(file *os.File, stat os.FileInfo, uploadId *string, offset int64,
 	totalSize := stat.Size()
 	println("Uploading file: " + file.Name() + " (" + strconv.FormatInt(totalSize, 10) + " bytes)")
 	bar := pb.StartNew(100)
+	bar.SetCurrent(offset * 100 / totalSize)
 	bar.Start()
 	configuration, err := loadConfiguration()
 	if err != nil {

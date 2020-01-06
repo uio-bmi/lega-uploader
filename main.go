@@ -20,16 +20,17 @@ func main() {
 	if *resumablesFlag {
 		resumables()
 	}
-	var function func(path string) error
+	args := os.Args[2:]
 	if *uploadFlag {
-		function = upload
-	} else {
-		function = resume
-	}
-	if *uploadFlag || *resumeFlag {
-		args := os.Args[2:]
 		for _, file := range args {
-			if err := function(file); err != nil {
+			if err := upload(file, false); err != nil {
+				log.Fatal(err)
+			}
+		}
+	}
+	if *resumeFlag {
+		for _, file := range args {
+			if err := upload(file, true); err != nil {
 				log.Fatal(err)
 			}
 		}
