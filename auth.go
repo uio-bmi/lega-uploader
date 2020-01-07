@@ -23,6 +23,7 @@ func login() {
 	}
 	defer response.Body.Close()
 	if response.StatusCode != 200 {
+		response.Body.Close()
 		log.Fatal(aurora.Red("Authentication failure"))
 	}
 	body, err := ioutil.ReadAll(response.Body)

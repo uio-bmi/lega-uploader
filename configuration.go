@@ -44,6 +44,7 @@ func loadConfiguration() *Configuration {
 	defer configFile.Close()
 	configFileContent, err := ioutil.ReadAll(configFile)
 	if err != nil {
+		configFile.Close()
 		log.Fatal(aurora.Red(err))
 	}
 	var configuration Configuration
