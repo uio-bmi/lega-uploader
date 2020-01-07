@@ -25,7 +25,7 @@ func resumables() {
 		log.Fatal(aurora.Red(err))
 	}
 	for _, resumable := range *resumables {
-		fmt.Println(resumable.name + "\t (" + strconv.FormatInt(resumable.size, 10) + " bytes uploaded)")
+		fmt.Println(aurora.Blue(resumable.name + "\t (" + strconv.FormatInt(resumable.size, 10) + " bytes uploaded)"))
 	}
 }
 

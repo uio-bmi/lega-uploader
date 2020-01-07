@@ -8,9 +8,11 @@ import (
 	"fmt"
 	"github.com/buger/jsonparser"
 	"github.com/cheggaaa/pb/v3"
+	"github.com/logrusorgru/aurora"
 	"io"
 	"io/ioutil"
 	"net/http"
+	"net/url"
 	"os"
 	"path/filepath"
 	"strconv"
@@ -74,7 +76,7 @@ func uploadFolder(folder *os.File, resume bool) error {
 
 func uploadFile(file *os.File, stat os.FileInfo, uploadId *string, offset int64, startChunk int64) error {
 	totalSize := stat.Size()
-	fmt.Println("Uploading file: " + file.Name() + " (" + strconv.FormatInt(totalSize, 10) + " bytes)")
+	fmt.Println(aurora.Blue("Uploading file: " + file.Name() + " (" + strconv.FormatInt(totalSize, 10) + " bytes)"))
 	bar := pb.StartNew(100)
 	bar.SetCurrent(offset * 100 / totalSize)
 	bar.Start()
@@ -104,7 +106,7 @@ func uploadFile(file *os.File, stat os.FileInfo, uploadId *string, offset int64,
 			params["uploadId"] = *uploadId
 		}
 		response, err := doRequest(http.MethodPatch,
-			*configuration.InstanceURL+"/stream/"+fileName,
+			*configuration.InstanceURL+"/stream/"+url.QueryEscape(fileName),
 			bytes.NewReader(chunk),
 			map[string]string{"Authorization": "Bearer " + *configuration.InstanceToken},
 			params,
@@ -139,7 +141,7 @@ func uploadFile(file *os.File, stat os.FileInfo, uploadId *string, offset int64,
 	}
 	checksum := hex.EncodeToString(hashFunction.Sum(nil)[:16])
 	response, err := doRequest(http.MethodPatch,
-		*configuration.InstanceURL+"/stream/"+fileName,
+		*configuration.InstanceURL+"/stream/"+url.QueryEscape(fileName),
 		nil,
 		map[string]string{"Authorization": "Bearer " + *configuration.InstanceToken},
 		map[string]string{"uploadId": *uploadId,
