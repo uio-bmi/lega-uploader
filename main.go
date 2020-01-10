@@ -1,6 +1,10 @@
 package main
 
 import (
+	"./auth"
+	"./conf"
+	"./resumables"
+	"./uploading"
 	"flag"
 	"fmt"
 	"github.com/logrusorgru/aurora"
@@ -17,7 +21,7 @@ func main() {
 	resumeFlag := flag.Bool("resume", false, "Resume files or directories upload.")
 	flag.Parse()
 	if *configFlag {
-		configure()
+		conf.Configure()
 	}
 	if *loginFlag {
 		fmt.Println(aurora.Yellow("Username: "))
@@ -29,19 +33,19 @@ func main() {
 			log.Fatal(aurora.Red(err))
 		}
 		password := string(bytePassword)
-		if err := login(username, password); err != nil {
+		if err := auth.Login(username, password); err != nil {
 			log.Fatal(aurora.Red(err))
 		}
 	}
 	if *resumablesFlag {
-		if err := resumables(); err != nil {
+		if err := resumables.Resumables(); err != nil {
 			log.Fatal(aurora.Red(err))
 		}
 	}
 	if *uploadFlag {
 		args := os.Args[2:]
 		for _, file := range args {
-			if err := upload(file, false); err != nil {
+			if err := uploading.Upload(file, false); err != nil {
 				log.Fatal(aurora.Red(err))
 			}
 		}
@@ -49,7 +53,7 @@ func main() {
 	if *resumeFlag {
 		args := os.Args[2:]
 		for _, file := range args {
-			if err := upload(file, true); err != nil {
+			if err := uploading.Upload(file, true); err != nil {
 				log.Fatal(aurora.Red(err))
 			}
 		}

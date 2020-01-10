@@ -1,6 +1,8 @@
-package main
+package auth
 
 import (
+	"../conf"
+	"../requests"
 	"errors"
 	"fmt"
 	"github.com/logrusorgru/aurora"
@@ -8,9 +10,9 @@ import (
 	"net/http"
 )
 
-func login(username string, password string) error {
-	configuration := loadConfiguration()
-	response, err := doRequest(http.MethodGet, *configuration.InstanceURL+"/cega", nil, nil, nil, &username, &password)
+func Login(username string, password string) error {
+	configuration := conf.LoadConfiguration()
+	response, err := requests.DoRequest(http.MethodGet, *configuration.InstanceURL+"/cega", nil, nil, nil, &username, &password)
 	if err != nil {
 		return err
 	}
@@ -27,7 +29,7 @@ func login(username string, password string) error {
 		return errors.New("Wrong credentials")
 	}
 	configuration.InstanceToken = &token
-	saveConfiguration(*configuration)
+	conf.SaveConfiguration(*configuration)
 	fmt.Println(aurora.Green("Success!"))
 	return nil
 }

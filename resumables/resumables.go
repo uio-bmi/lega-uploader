@@ -1,6 +1,8 @@
-package main
+package resumables
 
 import (
+	"../conf"
+	"../requests"
 	"errors"
 	"fmt"
 	"github.com/buger/jsonparser"
@@ -12,26 +14,26 @@ import (
 )
 
 type Resumable struct {
-	id    string
-	name  string
-	size  int64
-	chunk int64
+	Id    string
+	Name  string
+	Size  int64
+	Chunk int64
 }
 
-func resumables() error {
-	resumables, err := getResumables()
+func Resumables() error {
+	resumables, err := GetResumables()
 	if err != nil {
 		return err
 	}
 	for _, resumable := range *resumables {
-		fmt.Println(aurora.Blue(resumable.name + "\t (" + strconv.FormatInt(resumable.size, 10) + " bytes uploaded)"))
+		fmt.Println(aurora.Blue(resumable.Name + "\t (" + strconv.FormatInt(resumable.Size, 10) + " bytes uploaded)"))
 	}
 	return nil
 }
 
-func getResumables() (*[]Resumable, error) {
-	configuration := loadConfiguration()
-	response, err := doRequest(http.MethodGet,
+func GetResumables() (*[]Resumable, error) {
+	configuration := conf.LoadConfiguration()
+	response, err := requests.DoRequest(http.MethodGet,
 		*configuration.InstanceURL+"/resumables",
 		nil,
 		map[string]string{"Authorization": "Bearer " + *configuration.InstanceToken},

@@ -1,4 +1,4 @@
-package main
+package conf
 
 import (
 	"encoding/json"
@@ -20,7 +20,7 @@ type Configuration struct {
 	ChunkSize *int64
 }
 
-func configure() {
+func Configure() {
 	fmt.Println(aurora.Yellow("Instance URL: "))
 	var instanceURL string
 	_, _ = fmt.Scanln(&instanceURL)
@@ -32,10 +32,10 @@ func createConfiguration(instanceURL string) {
 	configuration.InstanceURL = &instanceURL
 	var defaultChunkSize int64 = 200
 	configuration.ChunkSize = &defaultChunkSize
-	saveConfiguration(configuration)
+	SaveConfiguration(configuration)
 }
 
-func loadConfiguration() *Configuration {
+func LoadConfiguration() *Configuration {
 	userCacheDir, _ := os.UserCacheDir()
 	configFile, err := os.Open(filepath.Join(userCacheDir, "lega-uploader", "config.json"))
 	if err != nil {
@@ -54,7 +54,7 @@ func loadConfiguration() *Configuration {
 	return &configuration
 }
 
-func saveConfiguration(configuration Configuration) {
+func SaveConfiguration(configuration Configuration) {
 	userCacheDir, _ := os.UserCacheDir()
 	bytes, err := json.Marshal(configuration)
 	if err != nil {

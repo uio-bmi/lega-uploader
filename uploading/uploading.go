@@ -1,6 +1,9 @@
-package main
+package uploading
 
 import (
+	"../conf"
+	"../requests"
+	"../resumables"
 	"bytes"
 	"crypto/md5"
 	"encoding/hex"
@@ -18,7 +21,7 @@ import (
 	"strconv"
 )
 
-func upload(path string, resume bool) error {
+func Upload(path string, resume bool) error {
 	var err error
 	if !filepath.IsAbs(path) {
 		path, err = filepath.Abs(path)
@@ -40,13 +43,13 @@ func upload(path string, resume bool) error {
 	} else {
 		if resume {
 			fileName := filepath.Base(file.Name())
-			resumables, err := getResumables()
+			resumablesList, err := resumables.GetResumables()
 			if err != nil {
 				return err
 			}
-			for _, resumable := range *resumables {
-				if resumable.name == fileName {
-					return uploadFile(file, stat, &resumable.id, resumable.size, resumable.chunk)
+			for _, resumable := range *resumablesList {
+				if resumable.Name == fileName {
+					return uploadFile(file, stat, &resumable.Id, resumable.Size, resumable.Chunk)
 				}
 			}
 			return nil
@@ -66,7 +69,7 @@ func uploadFolder(folder *os.File, resume bool) error {
 		if err != nil {
 			return err
 		}
-		err = upload(abs, resume)
+		err = Upload(abs, resume)
 		if err != nil {
 			return err
 		}
@@ -80,7 +83,7 @@ func uploadFile(file *os.File, stat os.FileInfo, uploadId *string, offset int64,
 	bar := pb.StartNew(100)
 	bar.SetCurrent(offset * 100 / totalSize)
 	bar.Start()
-	configuration := loadConfiguration()
+	configuration := conf.LoadConfiguration()
 
 	fileName := filepath.Base(file.Name())
 
@@ -105,7 +108,7 @@ func uploadFile(file *os.File, stat os.FileInfo, uploadId *string, offset int64,
 		if i != 1 {
 			params["uploadId"] = *uploadId
 		}
-		response, err := doRequest(http.MethodPatch,
+		response, err := requests.DoRequest(http.MethodPatch,
 			*configuration.InstanceURL+"/stream/"+url.QueryEscape(fileName),
 			bytes.NewReader(chunk),
 			map[string]string{"Authorization": "Bearer " + *configuration.InstanceToken},
@@ -140,7 +143,7 @@ func uploadFile(file *os.File, stat os.FileInfo, uploadId *string, offset int64,
 		return err
 	}
 	checksum := hex.EncodeToString(hashFunction.Sum(nil)[:16])
-	response, err := doRequest(http.MethodPatch,
+	response, err := requests.DoRequest(http.MethodPatch,
 		*configuration.InstanceURL+"/stream/"+url.QueryEscape(fileName),
 		nil,
 		map[string]string{"Authorization": "Bearer " + *configuration.InstanceToken},
