@@ -18,10 +18,14 @@ func main() {
 		configure()
 	}
 	if *loginFlag {
-		login()
+		if err := login(); err != nil {
+			log.Fatal(aurora.Red(err))
+		}
 	}
 	if *resumablesFlag {
-		resumables()
+		if err := resumables(); err != nil {
+			log.Fatal(aurora.Red(err))
+		}
 	}
 	if *uploadFlag {
 		args := os.Args[2:]

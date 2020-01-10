@@ -6,7 +6,6 @@ import (
 	"github.com/buger/jsonparser"
 	"github.com/logrusorgru/aurora"
 	"io/ioutil"
-	"log"
 	"net/http"
 	"strconv"
 	"strings"
@@ -19,14 +18,15 @@ type Resumable struct {
 	chunk int64
 }
 
-func resumables() {
+func resumables() error {
 	resumables, err := getResumables()
 	if err != nil {
-		log.Fatal(aurora.Red(err))
+		return err
 	}
 	for _, resumable := range *resumables {
 		fmt.Println(aurora.Blue(resumable.name + "\t (" + strconv.FormatInt(resumable.size, 10) + " bytes uploaded)"))
 	}
+	return nil
 }
 
 func getResumables() (*[]Resumable, error) {
