@@ -2,7 +2,9 @@ package main
 
 import (
 	"flag"
+	"fmt"
 	"github.com/logrusorgru/aurora"
+	"golang.org/x/crypto/ssh/terminal"
 	"log"
 	"os"
 )
@@ -18,7 +20,16 @@ func main() {
 		configure()
 	}
 	if *loginFlag {
-		if err := login(); err != nil {
+		fmt.Println(aurora.Yellow("Username: "))
+		var username string
+		_, _ = fmt.Scanln(&username)
+		fmt.Println(aurora.Yellow("Password: "))
+		bytePassword, err := terminal.ReadPassword(0)
+		if err != nil {
+			log.Fatal(aurora.Red(err))
+		}
+		password := string(bytePassword)
+		if err := login(username, password); err != nil {
 			log.Fatal(aurora.Red(err))
 		}
 	}
