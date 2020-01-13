@@ -5,7 +5,18 @@ import (
 	"net/http"
 )
 
-func DoRequest(method string, url string, body io.Reader, headers map[string]string, params map[string]string, username *string, password *string) (*http.Response, error) {
+type Client interface {
+	DoRequest(method string, url string, body io.Reader, headers map[string]string, params map[string]string, username *string, password *string) (*http.Response, error)
+}
+
+type defaultClient struct {
+}
+
+func NewClient() Client {
+	return defaultClient{}
+}
+
+func (defaultClient) DoRequest(method string, url string, body io.Reader, headers map[string]string, params map[string]string, username *string, password *string) (*http.Response, error) {
 	request, err := http.NewRequest(method, url, body)
 	if err != nil {
 		return nil, err

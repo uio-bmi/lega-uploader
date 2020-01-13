@@ -83,15 +83,19 @@ func uploadFile(file *os.File, stat os.FileInfo, uploadId *string, offset int64,
 	bar := pb.StartNew(100)
 	bar.SetCurrent(offset * 100 / totalSize)
 	bar.Start()
-	configuration := conf.LoadConfiguration()
+	configuration, err := conf.LoadConfiguration()
+	if err != nil {
+		return err
+	}
 
 	fileName := filepath.Base(file.Name())
 
-	_, err := file.Seek(offset, 0)
+	_, err = file.Seek(offset, 0)
 	if err != nil {
 		return err
 	}
 	buffer := make([]byte, *configuration.ChunkSize*1024*1024)
+	client := requests.NewClient()
 	for i := startChunk; true; i++ {
 		read, err := file.Read(buffer)
 		if err != nil {
@@ -108,7 +112,7 @@ func uploadFile(file *os.File, stat os.FileInfo, uploadId *string, offset int64,
 		if i != 1 {
 			params["uploadId"] = *uploadId
 		}
-		response, err := requests.DoRequest(http.MethodPatch,
+		response, err := client.DoRequest(http.MethodPatch,
 			*configuration.InstanceURL+"/stream/"+url.QueryEscape(fileName),
 			bytes.NewReader(chunk),
 			map[string]string{"Authorization": "Bearer " + *configuration.InstanceToken},
@@ -143,7 +147,7 @@ func uploadFile(file *os.File, stat os.FileInfo, uploadId *string, offset int64,
 		return err
 	}
 	checksum := hex.EncodeToString(hashFunction.Sum(nil)[:16])
-	response, err := requests.DoRequest(http.MethodPatch,
+	response, err := client.DoRequest(http.MethodPatch,
 		*configuration.InstanceURL+"/stream/"+url.QueryEscape(fileName),
 		nil,
 		map[string]string{"Authorization": "Bearer " + *configuration.InstanceToken},

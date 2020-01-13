@@ -6,9 +6,7 @@ import (
 	"./resumables"
 	"./uploading"
 	"flag"
-	"fmt"
 	"github.com/logrusorgru/aurora"
-	"golang.org/x/crypto/ssh/terminal"
 	"log"
 	"os"
 )
@@ -24,23 +22,10 @@ func main() {
 		conf.Configure()
 	}
 	if *loginFlag {
-		fmt.Println(aurora.Yellow("Username: "))
-		var username string
-		_, _ = fmt.Scanln(&username)
-		fmt.Println(aurora.Yellow("Password: "))
-		bytePassword, err := terminal.ReadPassword(0)
-		if err != nil {
-			log.Fatal(aurora.Red(err))
-		}
-		password := string(bytePassword)
-		if err := auth.Login(username, password); err != nil {
-			log.Fatal(aurora.Red(err))
-		}
+		auth.Login()
 	}
 	if *resumablesFlag {
-		if err := resumables.Resumables(); err != nil {
-			log.Fatal(aurora.Red(err))
-		}
+		resumables.Resumables()
 	}
 	if *uploadFlag {
 		args := os.Args[2:]
