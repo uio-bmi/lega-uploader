@@ -1,4 +1,4 @@
-package resumables
+package resuming
 
 import (
 	"../conf"
@@ -14,15 +14,9 @@ import (
 	"strings"
 )
 
-type Resumable struct {
-	Id    string
-	Name  string
-	Size  int64
-	Chunk int64
-}
-
 func Resumables() {
-	resumables, err := GetResumables()
+	resumablesManager := NewResumablesManager(nil)
+	resumables, err := resumablesManager.GetResumables()
 	if err != nil {
 		log.Fatal(aurora.Red(err))
 	}
@@ -31,14 +25,38 @@ func Resumables() {
 	}
 }
 
-func GetResumables() (*[]Resumable, error) {
+type Resumable struct {
+	Id    string
+	Name  string
+	Size  int64
+	Chunk int64
+}
+
+type ResumablesManager interface {
+	GetResumables() (*[]Resumable, error)
+}
+
+type defaultResumablesManager struct {
+	client requests.Client
+}
+
+func NewResumablesManager(client *requests.Client) ResumablesManager {
+	resumablesManager := defaultResumablesManager{}
+	if client != nil {
+		resumablesManager.client = *client
+	} else {
+		resumablesManager.client = requests.NewClient()
+	}
+	return resumablesManager
+}
+
+func (rm defaultResumablesManager) GetResumables() (*[]Resumable, error) {
 	configurationProvider := conf.NewConfigurationProvider()
 	configuration, err := configurationProvider.LoadConfiguration()
 	if err != nil {
 		return nil, err
 	}
-	client := requests.NewClient()
-	response, err := client.DoRequest(http.MethodGet,
+	response, err := rm.client.DoRequest(http.MethodGet,
 		*configuration.InstanceURL+"/resumables",
 		nil,
 		map[string]string{"Authorization": "Bearer " + *configuration.InstanceToken},

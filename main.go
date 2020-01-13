@@ -3,7 +3,7 @@ package main
 import (
 	"./auth"
 	"./conf"
-	"./resumables"
+	"./resuming"
 	"./uploading"
 	"flag"
 	"github.com/logrusorgru/aurora"
@@ -25,7 +25,7 @@ func main() {
 		auth.Login()
 	}
 	if *resumablesFlag {
-		resumables.Resumables()
+		resuming.Resumables()
 	}
 	if *uploadFlag {
 		args := os.Args[2:]

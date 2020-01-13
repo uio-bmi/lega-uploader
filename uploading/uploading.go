@@ -3,7 +3,7 @@ package uploading
 import (
 	"../conf"
 	"../requests"
-	"../resumables"
+	"../resuming"
 	"bytes"
 	"crypto/md5"
 	"encoding/hex"
@@ -38,12 +38,13 @@ func Upload(path string, resume bool) error {
 	if err != nil {
 		return err
 	}
+	resumablesManager := resuming.NewResumablesManager(nil)
 	if stat.IsDir() {
 		return uploadFolder(file, resume)
 	} else {
 		if resume {
 			fileName := filepath.Base(file.Name())
-			resumablesList, err := resumables.GetResumables()
+			resumablesList, err := resumablesManager.GetResumables()
 			if err != nil {
 				return err
 			}
