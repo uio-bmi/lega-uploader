@@ -83,7 +83,8 @@ func uploadFile(file *os.File, stat os.FileInfo, uploadId *string, offset int64,
 	bar := pb.StartNew(100)
 	bar.SetCurrent(offset * 100 / totalSize)
 	bar.Start()
-	configuration, err := conf.LoadConfiguration()
+	configurationProvider := conf.NewConfigurationProvider()
+	configuration, err := configurationProvider.LoadConfiguration()
 	if err != nil {
 		return err
 	}

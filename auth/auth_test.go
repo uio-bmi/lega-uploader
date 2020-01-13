@@ -1,6 +1,7 @@
 package auth
 
 import (
+	"../conf"
 	"../requests"
 	"io"
 	"io/ioutil"
@@ -8,6 +9,18 @@ import (
 	"strings"
 	"testing"
 )
+
+type mockConfigurationProvider struct {
+}
+
+func (cp mockConfigurationProvider) LoadConfiguration() (*conf.Configuration, error) {
+	configuration := conf.NewConfiguration("http://localhost/", nil)
+	return &configuration, nil
+}
+
+func (cp mockConfigurationProvider) SaveConfiguration(_ conf.Configuration) error {
+	return nil
+}
 
 type mockClient struct {
 }
@@ -32,8 +45,9 @@ func (mockClient) DoRequest(_ string, url string, _ io.Reader, _ map[string]stri
 }
 
 func TestLoginSuccess(t *testing.T) {
+	var configurationProvider conf.ConfigurationProvider = mockConfigurationProvider{}
 	var client requests.Client = mockClient{}
-	authenticationManager := NewAuthenticationManager(&client)
+	authenticationManager := NewAuthenticationManager(&configurationProvider, &client)
 	err := authenticationManager.Authenticate("dummy", "dummy")
 	if err != nil {
 		t.Error(err)
@@ -42,7 +56,7 @@ func TestLoginSuccess(t *testing.T) {
 
 func TestLoginFailure(t *testing.T) {
 	var client requests.Client = mockClient{}
-	authenticationManager := NewAuthenticationManager(&client)
+	authenticationManager := NewAuthenticationManager(nil, &client)
 	err := authenticationManager.Authenticate("", "")
 	if err == nil {
 		t.Error()

@@ -32,7 +32,8 @@ func Resumables() {
 }
 
 func GetResumables() (*[]Resumable, error) {
-	configuration, err := conf.LoadConfiguration()
+	configurationProvider := conf.NewConfigurationProvider()
+	configuration, err := configurationProvider.LoadConfiguration()
 	if err != nil {
 		return nil, err
 	}

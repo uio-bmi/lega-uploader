@@ -22,7 +22,7 @@ func Login() {
 		log.Fatal(aurora.Red(err))
 	}
 	password := string(bytePassword)
-	authenticationManager := NewAuthenticationManager(nil)
+	authenticationManager := NewAuthenticationManager(nil, nil)
 	if err := authenticationManager.Authenticate(username, password); err != nil {
 		log.Fatal(aurora.Red(err))
 	} else {
@@ -35,23 +35,31 @@ type AuthenticationManager interface {
 }
 
 type defaultAuthenticationManager struct {
-	Client requests.Client
+	configurationProvider conf.ConfigurationProvider
+	client                requests.Client
 }
 
-func NewAuthenticationManager(client *requests.Client) AuthenticationManager {
-	if client != nil {
-		return defaultAuthenticationManager{Client: *client}
+func NewAuthenticationManager(configurationProvider *conf.ConfigurationProvider, client *requests.Client) AuthenticationManager {
+	authenticationManager := defaultAuthenticationManager{}
+	if configurationProvider != nil {
+		authenticationManager.configurationProvider = *configurationProvider
 	} else {
-		return defaultAuthenticationManager{Client: requests.NewClient()}
+		authenticationManager.configurationProvider = conf.NewConfigurationProvider()
 	}
+	if client != nil {
+		authenticationManager.client = *client
+	} else {
+		authenticationManager.client = requests.NewClient()
+	}
+	return authenticationManager
 }
 
 func (am defaultAuthenticationManager) Authenticate(username string, password string) error {
-	configuration, err := conf.LoadConfiguration()
+	configuration, err := am.configurationProvider.LoadConfiguration()
 	if err != nil {
 		return err
 	}
-	response, err := am.Client.DoRequest(http.MethodGet, *configuration.InstanceURL+"/cega", nil, nil, nil, &username, &password)
+	response, err := am.client.DoRequest(http.MethodGet, *configuration.InstanceURL+"/cega", nil, nil, nil, &username, &password)
 	if err != nil {
 		return err
 	}
@@ -68,7 +76,7 @@ func (am defaultAuthenticationManager) Authenticate(username string, password st
 		return errors.New("Wrong credentials")
 	}
 	configuration.InstanceToken = &token
-	if err = conf.SaveConfiguration(*configuration); err != nil {
+	if err = am.configurationProvider.SaveConfiguration(*configuration); err != nil {
 		return err
 	}
 	return nil

@@ -11,6 +11,17 @@ import (
 	"strings"
 )
 
+func Configure() {
+	fmt.Println(aurora.Yellow("Instance URL: "))
+	var instanceURL string
+	_, _ = fmt.Scanln(&instanceURL)
+	configurationProvider := NewConfigurationProvider()
+	configuration := NewConfiguration(strings.TrimRight(instanceURL, "/"), nil)
+	if err := configurationProvider.SaveConfiguration(configuration); err != nil {
+		log.Fatal(aurora.Red(err))
+	}
+}
+
 type Configuration struct {
 	InstanceURL *string
 
@@ -20,27 +31,30 @@ type Configuration struct {
 	ChunkSize *int64
 }
 
-func Configure() {
-	fmt.Println(aurora.Yellow("Instance URL: "))
-	var instanceURL string
-	_, _ = fmt.Scanln(&instanceURL)
-	if err := createConfiguration(strings.TrimRight(instanceURL, "/")); err != nil {
-		log.Fatal(aurora.Red(err))
+func NewConfiguration(instanceURL string, chunkSize *int64) Configuration {
+	configuration := Configuration{InstanceURL: &instanceURL}
+	if chunkSize != nil {
+		configuration.ChunkSize = chunkSize
+	} else {
+		var defaultChunkSize int64 = 200
+		configuration.ChunkSize = &defaultChunkSize
 	}
+	return configuration
 }
 
-func createConfiguration(instanceURL string) error {
-	configuration := Configuration{}
-	configuration.InstanceURL = &instanceURL
-	var defaultChunkSize int64 = 200
-	configuration.ChunkSize = &defaultChunkSize
-	if err := SaveConfiguration(configuration); err != nil {
-		return err
-	}
-	return nil
+type ConfigurationProvider interface {
+	LoadConfiguration() (*Configuration, error)
+	SaveConfiguration(configuration Configuration) error
 }
 
-func LoadConfiguration() (*Configuration, error) {
+type defaultConfigurationProvider struct {
+}
+
+func NewConfigurationProvider() ConfigurationProvider {
+	return defaultConfigurationProvider{}
+}
+
+func (cp defaultConfigurationProvider) LoadConfiguration() (*Configuration, error) {
 	userCacheDir, _ := os.UserCacheDir()
 	configFile, err := os.Open(filepath.Join(userCacheDir, "lega-uploader", "config.json"))
 	if err != nil {
@@ -58,7 +72,7 @@ func LoadConfiguration() (*Configuration, error) {
 	return &configuration, nil
 }
 
-func SaveConfiguration(configuration Configuration) error {
+func (cp defaultConfigurationProvider) SaveConfiguration(configuration Configuration) error {
 	userCacheDir, _ := os.UserCacheDir()
 	bytes, err := json.Marshal(configuration)
 	if err != nil {
