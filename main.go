@@ -27,10 +27,11 @@ func main() {
 	if *resumablesFlag {
 		resuming.Resumables()
 	}
+	uploader := uploading.NewUploader(nil, nil, nil)
 	if *uploadFlag {
 		args := os.Args[2:]
 		for _, file := range args {
-			if err := uploading.Upload(file, false); err != nil {
+			if err := uploader.Upload(file, false); err != nil {
 				log.Fatal(aurora.Red(err))
 			}
 		}
@@ -38,7 +39,7 @@ func main() {
 	if *resumeFlag {
 		args := os.Args[2:]
 		for _, file := range args {
-			if err := uploading.Upload(file, true); err != nil {
+			if err := uploader.Upload(file, true); err != nil {
 				log.Fatal(aurora.Red(err))
 			}
 		}

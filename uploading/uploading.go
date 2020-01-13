@@ -21,7 +21,39 @@ import (
 	"strconv"
 )
 
-func Upload(path string, resume bool) error {
+type Uploader interface {
+	Upload(path string, resume bool) error
+	uploadFolder(folder *os.File, resume bool) error
+	uploadFile(file *os.File, stat os.FileInfo, uploadId *string, offset int64, startChunk int64) error
+}
+
+type defaultUploader struct {
+	configurationProvider conf.ConfigurationProvider
+	client                requests.Client
+	resumablesManager     resuming.ResumablesManager
+}
+
+func NewUploader(configurationProvider *conf.ConfigurationProvider, client *requests.Client, resumablesManager *resuming.ResumablesManager) Uploader {
+	uploader := defaultUploader{}
+	if configurationProvider != nil {
+		uploader.configurationProvider = *configurationProvider
+	} else {
+		uploader.configurationProvider = conf.NewConfigurationProvider()
+	}
+	if client != nil {
+		uploader.client = *client
+	} else {
+		uploader.client = requests.NewClient()
+	}
+	if resumablesManager != nil {
+		uploader.resumablesManager = *resumablesManager
+	} else {
+		uploader.resumablesManager = resuming.NewResumablesManager(&uploader.configurationProvider, &uploader.client)
+	}
+	return uploader
+}
+
+func (u defaultUploader) Upload(path string, resume bool) error {
 	var err error
 	if !filepath.IsAbs(path) {
 		path, err = filepath.Abs(path)
@@ -38,29 +70,28 @@ func Upload(path string, resume bool) error {
 	if err != nil {
 		return err
 	}
-	resumablesManager := resuming.NewResumablesManager(nil)
 	if stat.IsDir() {
-		return uploadFolder(file, resume)
+		return u.uploadFolder(file, resume)
 	} else {
 		if resume {
 			fileName := filepath.Base(file.Name())
-			resumablesList, err := resumablesManager.GetResumables()
+			resumablesList, err := u.resumablesManager.GetResumables()
 			if err != nil {
 				return err
 			}
 			for _, resumable := range *resumablesList {
 				if resumable.Name == fileName {
-					return uploadFile(file, stat, &resumable.Id, resumable.Size, resumable.Chunk)
+					return u.uploadFile(file, stat, &resumable.Id, resumable.Size, resumable.Chunk)
 				}
 			}
 			return nil
 		} else {
-			return uploadFile(file, stat, nil, 0, 1)
+			return u.uploadFile(file, stat, nil, 0, 1)
 		}
 	}
 }
 
-func uploadFolder(folder *os.File, resume bool) error {
+func (u defaultUploader) uploadFolder(folder *os.File, resume bool) error {
 	readdir, err := folder.Readdir(-1)
 	if err != nil {
 		return err
@@ -70,7 +101,7 @@ func uploadFolder(folder *os.File, resume bool) error {
 		if err != nil {
 			return err
 		}
-		err = Upload(abs, resume)
+		err = u.Upload(abs, resume)
 		if err != nil {
 			return err
 		}
@@ -78,14 +109,13 @@ func uploadFolder(folder *os.File, resume bool) error {
 	return nil
 }
 
-func uploadFile(file *os.File, stat os.FileInfo, uploadId *string, offset int64, startChunk int64) error {
+func (u defaultUploader) uploadFile(file *os.File, stat os.FileInfo, uploadId *string, offset int64, startChunk int64) error {
 	totalSize := stat.Size()
 	fmt.Println(aurora.Blue("Uploading file: " + file.Name() + " (" + strconv.FormatInt(totalSize, 10) + " bytes)"))
 	bar := pb.StartNew(100)
 	bar.SetCurrent(offset * 100 / totalSize)
 	bar.Start()
-	configurationProvider := conf.NewConfigurationProvider()
-	configuration, err := configurationProvider.LoadConfiguration()
+	configuration, err := u.configurationProvider.LoadConfiguration()
 	if err != nil {
 		return err
 	}
@@ -97,7 +127,6 @@ func uploadFile(file *os.File, stat os.FileInfo, uploadId *string, offset int64,
 		return err
 	}
 	buffer := make([]byte, *configuration.ChunkSize*1024*1024)
-	client := requests.NewClient()
 	for i := startChunk; true; i++ {
 		read, err := file.Read(buffer)
 		if err != nil {
@@ -114,7 +143,7 @@ func uploadFile(file *os.File, stat os.FileInfo, uploadId *string, offset int64,
 		if i != 1 {
 			params["uploadId"] = *uploadId
 		}
-		response, err := client.DoRequest(http.MethodPatch,
+		response, err := u.client.DoRequest(http.MethodPatch,
 			*configuration.InstanceURL+"/stream/"+url.QueryEscape(fileName),
 			bytes.NewReader(chunk),
 			map[string]string{"Authorization": "Bearer " + *configuration.InstanceToken},
@@ -149,7 +178,7 @@ func uploadFile(file *os.File, stat os.FileInfo, uploadId *string, offset int64,
 		return err
 	}
 	checksum := hex.EncodeToString(hashFunction.Sum(nil)[:16])
-	response, err := client.DoRequest(http.MethodPatch,
+	response, err := u.client.DoRequest(http.MethodPatch,
 		*configuration.InstanceURL+"/stream/"+url.QueryEscape(fileName),
 		nil,
 		map[string]string{"Authorization": "Bearer " + *configuration.InstanceToken},
