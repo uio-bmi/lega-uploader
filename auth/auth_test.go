@@ -11,14 +11,15 @@ import (
 )
 
 type mockConfigurationProvider struct {
+	configuration *conf.Configuration
 }
 
 func (cp mockConfigurationProvider) LoadConfiguration() (*conf.Configuration, error) {
-	configuration := conf.NewConfiguration("http://localhost/", nil)
-	return &configuration, nil
+	return cp.configuration, nil
 }
 
-func (cp mockConfigurationProvider) SaveConfiguration(_ conf.Configuration) error {
+func (cp *mockConfigurationProvider) SaveConfiguration(configuration conf.Configuration) error {
+	cp.configuration = &configuration
 	return nil
 }
 
@@ -45,7 +46,12 @@ func (mockClient) DoRequest(_ string, url string, _ io.Reader, _ map[string]stri
 }
 
 func TestAuthenticateSuccess(t *testing.T) {
-	var configurationProvider conf.ConfigurationProvider = mockConfigurationProvider{}
+	var configurationProvider conf.ConfigurationProvider = &mockConfigurationProvider{}
+	newConfiguration := conf.NewConfiguration("http://localhost/", nil)
+	err := configurationProvider.SaveConfiguration(newConfiguration)
+	if err != nil {
+		t.Error(err)
+	}
 	var client requests.Client = mockClient{}
 	authenticationManager, err := NewAuthenticationManager(&configurationProvider, &client)
 	if err != nil {
@@ -55,11 +61,24 @@ func TestAuthenticateSuccess(t *testing.T) {
 	if err != nil {
 		t.Error(err)
 	}
+	configuration, err := configurationProvider.LoadConfiguration()
+	if err != nil {
+		t.Error(err)
+	}
+	if *configuration.InstanceToken != "Success" {
+		t.Error()
+	}
 }
 
 func TestAuthenticateFailure(t *testing.T) {
+	var configurationProvider conf.ConfigurationProvider = &mockConfigurationProvider{}
+	newConfiguration := conf.NewConfiguration("http://localhost/", nil)
+	err := configurationProvider.SaveConfiguration(newConfiguration)
+	if err != nil {
+		t.Error(err)
+	}
 	var client requests.Client = mockClient{}
-	authenticationManager, err := NewAuthenticationManager(nil, &client)
+	authenticationManager, err := NewAuthenticationManager(&configurationProvider, &client)
 	if err != nil {
 		t.Error(err)
 	}
