@@ -27,7 +27,10 @@ func main() {
 	if *resumablesFlag {
 		resuming.Resumables()
 	}
-	uploader := uploading.NewUploader(nil, nil, nil)
+	uploader, err := uploading.NewUploader(nil, nil, nil)
+	if err != nil {
+		log.Fatal(aurora.Red(err))
+	}
 	if *uploadFlag {
 		args := os.Args[2:]
 		for _, file := range args {

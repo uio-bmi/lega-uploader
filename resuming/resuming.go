@@ -15,7 +15,10 @@ import (
 )
 
 func Resumables() {
-	resumablesManager := NewResumablesManager(nil, nil)
+	resumablesManager, err := NewResumablesManager(nil, nil)
+	if err != nil {
+		log.Fatal(aurora.Red(err))
+	}
 	resumables, err := resumablesManager.GetResumables()
 	if err != nil {
 		log.Fatal(aurora.Red(err))
@@ -41,19 +44,23 @@ type defaultResumablesManager struct {
 	client                requests.Client
 }
 
-func NewResumablesManager(configurationProvider *conf.ConfigurationProvider, client *requests.Client) ResumablesManager {
+func NewResumablesManager(configurationProvider *conf.ConfigurationProvider, client *requests.Client) (ResumablesManager, error) {
 	resumablesManager := defaultResumablesManager{}
 	if configurationProvider != nil {
 		resumablesManager.configurationProvider = *configurationProvider
 	} else {
-		resumablesManager.configurationProvider = conf.NewConfigurationProvider()
+		newConfigurationProvider, err := conf.NewConfigurationProvider(nil)
+		if err != nil {
+			return nil, err
+		}
+		resumablesManager.configurationProvider = newConfigurationProvider
 	}
 	if client != nil {
 		resumablesManager.client = *client
 	} else {
 		resumablesManager.client = requests.NewClient()
 	}
-	return resumablesManager
+	return resumablesManager, nil
 }
 
 func (rm defaultResumablesManager) GetResumables() (*[]Resumable, error) {

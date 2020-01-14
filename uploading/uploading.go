@@ -33,12 +33,16 @@ type defaultUploader struct {
 	resumablesManager     resuming.ResumablesManager
 }
 
-func NewUploader(configurationProvider *conf.ConfigurationProvider, client *requests.Client, resumablesManager *resuming.ResumablesManager) Uploader {
+func NewUploader(configurationProvider *conf.ConfigurationProvider, client *requests.Client, resumablesManager *resuming.ResumablesManager) (Uploader, error) {
 	uploader := defaultUploader{}
 	if configurationProvider != nil {
 		uploader.configurationProvider = *configurationProvider
 	} else {
-		uploader.configurationProvider = conf.NewConfigurationProvider()
+		newConfigurationProvider, err := conf.NewConfigurationProvider(nil)
+		if err != nil {
+			return nil, err
+		}
+		uploader.configurationProvider = newConfigurationProvider
 	}
 	if client != nil {
 		uploader.client = *client
@@ -48,9 +52,13 @@ func NewUploader(configurationProvider *conf.ConfigurationProvider, client *requ
 	if resumablesManager != nil {
 		uploader.resumablesManager = *resumablesManager
 	} else {
-		uploader.resumablesManager = resuming.NewResumablesManager(&uploader.configurationProvider, &uploader.client)
+		newResumablesManager, err := resuming.NewResumablesManager(&uploader.configurationProvider, &uploader.client)
+		if err != nil {
+			return nil, err
+		}
+		uploader.resumablesManager = newResumablesManager
 	}
-	return uploader
+	return uploader, nil
 }
 
 func (u defaultUploader) Upload(path string, resume bool) error {

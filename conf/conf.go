@@ -14,8 +14,14 @@ import (
 func Configure() {
 	fmt.Println(aurora.Yellow("Instance URL: "))
 	var instanceURL string
-	_, _ = fmt.Scanln(&instanceURL)
-	configurationProvider := NewConfigurationProvider()
+	_, err := fmt.Scanln(&instanceURL)
+	if err != nil {
+		log.Fatal(aurora.Red(err))
+	}
+	configurationProvider, err := NewConfigurationProvider(nil)
+	if err != nil {
+		log.Fatal(aurora.Red(err))
+	}
 	configuration := NewConfiguration(strings.TrimRight(instanceURL, "/"), nil)
 	if err := configurationProvider.SaveConfiguration(configuration); err != nil {
 		log.Fatal(aurora.Red(err))
@@ -48,15 +54,25 @@ type ConfigurationProvider interface {
 }
 
 type defaultConfigurationProvider struct {
+	configFile string
 }
 
-func NewConfigurationProvider() ConfigurationProvider {
-	return defaultConfigurationProvider{}
+func NewConfigurationProvider(configFile *string) (ConfigurationProvider, error) {
+	configurationProvider := defaultConfigurationProvider{}
+	if configFile != nil {
+		configurationProvider.configFile = *configFile
+	} else {
+		userCacheDir, err := os.UserCacheDir()
+		if err != nil {
+			return nil, err
+		}
+		configurationProvider.configFile = filepath.Join(userCacheDir, "lega-uploader", "config.json")
+	}
+	return configurationProvider, nil
 }
 
 func (cp defaultConfigurationProvider) LoadConfiguration() (*Configuration, error) {
-	userCacheDir, _ := os.UserCacheDir()
-	configFile, err := os.Open(filepath.Join(userCacheDir, "lega-uploader", "config.json"))
+	configFile, err := os.Open(cp.configFile)
 	if err != nil {
 		return nil, err
 	}

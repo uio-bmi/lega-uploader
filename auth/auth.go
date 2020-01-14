@@ -22,7 +22,10 @@ func Login() {
 		log.Fatal(aurora.Red(err))
 	}
 	password := string(bytePassword)
-	authenticationManager := NewAuthenticationManager(nil, nil)
+	authenticationManager, err := NewAuthenticationManager(nil, nil)
+	if err != nil {
+		log.Fatal(aurora.Red(err))
+	}
 	if err := authenticationManager.Authenticate(username, password); err != nil {
 		log.Fatal(aurora.Red(err))
 	} else {
@@ -39,19 +42,23 @@ type defaultAuthenticationManager struct {
 	client                requests.Client
 }
 
-func NewAuthenticationManager(configurationProvider *conf.ConfigurationProvider, client *requests.Client) AuthenticationManager {
+func NewAuthenticationManager(configurationProvider *conf.ConfigurationProvider, client *requests.Client) (AuthenticationManager, error) {
 	authenticationManager := defaultAuthenticationManager{}
 	if configurationProvider != nil {
 		authenticationManager.configurationProvider = *configurationProvider
 	} else {
-		authenticationManager.configurationProvider = conf.NewConfigurationProvider()
+		newConfigurationProvider, err := conf.NewConfigurationProvider(nil)
+		if err != nil {
+			return nil, err
+		}
+		authenticationManager.configurationProvider = newConfigurationProvider
 	}
 	if client != nil {
 		authenticationManager.client = *client
 	} else {
 		authenticationManager.client = requests.NewClient()
 	}
-	return authenticationManager
+	return authenticationManager, nil
 }
 
 func (am defaultAuthenticationManager) Authenticate(username string, password string) error {

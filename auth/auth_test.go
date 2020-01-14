@@ -44,20 +44,26 @@ func (mockClient) DoRequest(_ string, url string, _ io.Reader, _ map[string]stri
 	return nil, nil
 }
 
-func TestLoginSuccess(t *testing.T) {
+func TestAuthenticateSuccess(t *testing.T) {
 	var configurationProvider conf.ConfigurationProvider = mockConfigurationProvider{}
 	var client requests.Client = mockClient{}
-	authenticationManager := NewAuthenticationManager(&configurationProvider, &client)
-	err := authenticationManager.Authenticate("dummy", "dummy")
+	authenticationManager, err := NewAuthenticationManager(&configurationProvider, &client)
+	if err != nil {
+		t.Error(err)
+	}
+	err = authenticationManager.Authenticate("dummy", "dummy")
 	if err != nil {
 		t.Error(err)
 	}
 }
 
-func TestLoginFailure(t *testing.T) {
+func TestAuthenticateFailure(t *testing.T) {
 	var client requests.Client = mockClient{}
-	authenticationManager := NewAuthenticationManager(nil, &client)
-	err := authenticationManager.Authenticate("", "")
+	authenticationManager, err := NewAuthenticationManager(nil, &client)
+	if err != nil {
+		t.Error(err)
+	}
+	err = authenticationManager.Authenticate("", "")
 	if err == nil {
 		t.Error()
 	}
