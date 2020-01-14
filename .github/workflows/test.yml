@@ -27,10 +27,12 @@ jobs:
           fi
 
       - name: Test
-        run: go test -v -coverprofile=profile.cov ./...
+        run: go test -v -coverprofile=coverage.txt -covermode=atomic ./...
 
-      - name: Coveralls
-        uses: shogo82148/actions-goveralls@v1
+      - name: Codecov
+        uses: codecov/codecov-action@v1
         with:
-          path-to-profile: profile.cov
-          parallel: true
+          token: ${{ secrets.CODECOV_TOKEN }}
+          file: ./coverage.txt
+          flags: unittests
+          fail_ci_if_error: false
