@@ -27,9 +27,10 @@ jobs:
           fi
 
       - name: Test
-        run: go test -v ./...
+        run: go test -v -coverprofile=profile.cov ./...
 
       - name: Coveralls
-        uses: coverallsapp/github-action@master
+        uses: shogo82148/actions-goveralls@v1
         with:
-          github-token: ${{ secrets.GITHUB_TOKEN }}
+          path-to-profile: profile.cov
+          parallel: true
