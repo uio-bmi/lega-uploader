@@ -47,7 +47,7 @@ func NewUploader(configurationProvider *conf.ConfigurationProvider, client *requ
 	if client != nil {
 		uploader.client = *client
 	} else {
-		uploader.client = requests.NewClient()
+		uploader.client = requests.NewClient(nil)
 	}
 	if resumablesManager != nil {
 		uploader.resumablesManager = *resumablesManager

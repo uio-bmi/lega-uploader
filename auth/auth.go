@@ -56,7 +56,7 @@ func NewAuthenticationManager(configurationProvider *conf.ConfigurationProvider,
 	if client != nil {
 		authenticationManager.client = *client
 	} else {
-		authenticationManager.client = requests.NewClient()
+		authenticationManager.client = requests.NewClient(nil)
 	}
 	return authenticationManager, nil
 }

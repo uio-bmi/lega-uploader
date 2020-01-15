@@ -58,7 +58,7 @@ func NewResumablesManager(configurationProvider *conf.ConfigurationProvider, cli
 	if client != nil {
 		resumablesManager.client = *client
 	} else {
-		resumablesManager.client = requests.NewClient()
+		resumablesManager.client = requests.NewClient(nil)
 	}
 	return resumablesManager, nil
 }

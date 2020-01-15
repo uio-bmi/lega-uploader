@@ -10,13 +10,20 @@ type Client interface {
 }
 
 type defaultClient struct {
+	client http.Client
 }
 
-func NewClient() Client {
-	return defaultClient{}
+func NewClient(client *http.Client) Client {
+	defaultClient := defaultClient{}
+	if client != nil {
+		defaultClient.client = *client
+	} else {
+		defaultClient.client = *http.DefaultClient
+	}
+	return defaultClient
 }
 
-func (defaultClient) DoRequest(method string, url string, body io.Reader, headers map[string]string, params map[string]string, username *string, password *string) (*http.Response, error) {
+func (c defaultClient) DoRequest(method string, url string, body io.Reader, headers map[string]string, params map[string]string, username *string, password *string) (*http.Response, error) {
 	request, err := http.NewRequest(method, url, body)
 	if err != nil {
 		return nil, err
@@ -36,5 +43,5 @@ func (defaultClient) DoRequest(method string, url string, body io.Reader, header
 	if username != nil && password != nil {
 		request.SetBasicAuth(*username, *password)
 	}
-	return http.DefaultClient.Do(request)
+	return c.client.Do(request)
 }
