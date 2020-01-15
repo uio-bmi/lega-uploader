@@ -23,6 +23,11 @@ func setup() {
 	if err != nil {
 		log.Fatal(aurora.Red(err))
 	}
+	err = ioutil.WriteFile(configFile.Name(), []byte(
+		`{"InstanceURL":"https://localhost","InstanceToken":"token","AaiToken":null,"ChunkSize":200}`), os.ModePerm)
+	if err != nil {
+		log.Fatal(aurora.Red(err))
+	}
 }
 
 func TestNewConfigurationInstanceURL(t *testing.T) {
@@ -72,14 +77,20 @@ func TestLoadConfigurationMalformed(t *testing.T) {
 }
 
 func TestLoadConfigurationSuccess(t *testing.T) {
-	filePath := "conf.go"
+	filePath := configFile.Name()
 	configurationProvider, err := NewConfigurationProvider(&filePath)
 	if err != nil {
 		t.Error(err)
 	}
-	_, err = configurationProvider.LoadConfiguration()
-	if err == nil {
+	configuration, err := configurationProvider.LoadConfiguration()
+	if err != nil {
 		t.Error(err)
+	}
+	if *configuration.InstanceURL != "https://localhost" {
+		t.Error()
+	}
+	if *configuration.ChunkSize != 200 {
+		t.Error()
 	}
 }
 
