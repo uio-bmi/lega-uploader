@@ -89,12 +89,11 @@ func (cp defaultConfigurationProvider) LoadConfiguration() (*Configuration, erro
 }
 
 func (cp defaultConfigurationProvider) SaveConfiguration(configuration Configuration) error {
-	userCacheDir, _ := os.UserCacheDir()
 	bytes, err := json.Marshal(configuration)
 	if err != nil {
 		return err
 	}
-	if err = ioutil.WriteFile(filepath.Join(userCacheDir, "lega-uploader", "config.json"), bytes, os.ModePerm); err != nil {
+	if err = ioutil.WriteFile(cp.configFile, bytes, os.ModePerm); err != nil {
 		return err
 	}
 	return nil
