@@ -129,6 +129,13 @@ func TestUploadFile(t *testing.T) {
 	}
 }
 
+func TestUploadFolder(t *testing.T) {
+	err := uploader.Upload(dir, false)
+	if err != nil {
+		t.Error(err)
+	}
+}
+
 func teardown() {
 	err := os.Remove(file.Name())
 	if err != nil {
