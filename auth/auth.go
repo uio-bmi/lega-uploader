@@ -4,34 +4,9 @@ import (
 	"../conf"
 	"../requests"
 	"errors"
-	"fmt"
-	"github.com/logrusorgru/aurora"
-	"golang.org/x/crypto/ssh/terminal"
 	"io/ioutil"
-	"log"
 	"net/http"
 )
-
-func Login() {
-	fmt.Println(aurora.Yellow("Username: "))
-	var username string
-	_, _ = fmt.Scanln(&username)
-	fmt.Println(aurora.Yellow("Password: "))
-	bytePassword, err := terminal.ReadPassword(0)
-	if err != nil {
-		log.Fatal(aurora.Red(err))
-	}
-	password := string(bytePassword)
-	authenticationManager, err := NewAuthenticationManager(nil, nil)
-	if err != nil {
-		log.Fatal(aurora.Red(err))
-	}
-	if err := authenticationManager.Authenticate(username, password); err != nil {
-		log.Fatal(aurora.Red(err))
-	} else {
-		fmt.Println(aurora.Green("Success!"))
-	}
-}
 
 type AuthenticationManager interface {
 	Authenticate(username string, password string) error

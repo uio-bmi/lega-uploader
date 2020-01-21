@@ -4,29 +4,11 @@ import (
 	"../conf"
 	"../requests"
 	"errors"
-	"fmt"
 	"github.com/buger/jsonparser"
-	"github.com/logrusorgru/aurora"
 	"io/ioutil"
-	"log"
 	"net/http"
-	"strconv"
 	"strings"
 )
-
-func Resumables() {
-	resumablesManager, err := NewResumablesManager(nil, nil)
-	if err != nil {
-		log.Fatal(aurora.Red(err))
-	}
-	resumables, err := resumablesManager.GetResumables()
-	if err != nil {
-		log.Fatal(aurora.Red(err))
-	}
-	for _, resumable := range *resumables {
-		fmt.Println(aurora.Blue(resumable.Name + "\t (" + strconv.FormatInt(resumable.Size, 10) + " bytes uploaded)"))
-	}
-}
 
 type Resumable struct {
 	Id    string

@@ -2,31 +2,10 @@ package conf
 
 import (
 	"encoding/json"
-	"fmt"
-	"github.com/logrusorgru/aurora"
 	"io/ioutil"
-	"log"
 	"os"
 	"path/filepath"
-	"strings"
 )
-
-func Configure() {
-	fmt.Println(aurora.Yellow("Instance URL: "))
-	var instanceURL string
-	_, err := fmt.Scanln(&instanceURL)
-	if err != nil {
-		log.Fatal(aurora.Red(err))
-	}
-	configurationProvider, err := NewConfigurationProvider(nil)
-	if err != nil {
-		log.Fatal(aurora.Red(err))
-	}
-	configuration := NewConfiguration(strings.TrimRight(instanceURL, "/"), nil)
-	if err := configurationProvider.SaveConfiguration(configuration); err != nil {
-		log.Fatal(aurora.Red(err))
-	}
-}
 
 type Configuration struct {
 	InstanceURL *string
