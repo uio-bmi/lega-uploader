@@ -53,9 +53,7 @@ func main() {
 		if err := configurationProvider.SaveConfiguration(configuration); err != nil {
 			log.Fatal(aurora.Red(err))
 		}
-	}
-
-	if *loginFlag {
+	} else if *loginFlag {
 		fmt.Println(aurora.Yellow("Username: "))
 		var username string
 		_, _ = fmt.Scanln(&username)
@@ -74,9 +72,7 @@ func main() {
 		} else {
 			fmt.Println(aurora.Green("Success!"))
 		}
-	}
-
-	if *resumablesFlag {
+	} else if *resumablesFlag {
 		resumablesManager, err := resuming.NewResumablesManager(nil, nil)
 		if err != nil {
 			log.Fatal(aurora.Red(err))
@@ -88,35 +84,32 @@ func main() {
 		for _, resumable := range *resumables {
 			fmt.Println(aurora.Blue(resumable.Name + "\t (" + strconv.FormatInt(resumable.Size, 10) + " bytes uploaded)"))
 		}
-	}
-
-	uploader, err := uploading.NewUploader(nil, nil, nil)
-	if err != nil {
-		log.Fatal(aurora.Red(err))
-	}
-
-	if *uploadFlag {
+	} else if *uploadFlag {
+		uploader, err := uploading.NewUploader(nil, nil, nil)
+		if err != nil {
+			log.Fatal(aurora.Red(err))
+		}
 		args := os.Args[2:]
 		for _, file := range args {
 			if err := uploader.Upload(file, false); err != nil {
 				log.Fatal(aurora.Red(err))
 			}
 		}
-	}
-
-	if *resumeFlag {
+	} else if *resumeFlag {
+		uploader, err := uploading.NewUploader(nil, nil, nil)
+		if err != nil {
+			log.Fatal(aurora.Red(err))
+		}
 		args := os.Args[2:]
 		for _, file := range args {
 			if err := uploader.Upload(file, true); err != nil {
 				log.Fatal(aurora.Red(err))
 			}
 		}
-	}
-
-	if *versionFlag {
+	} else if *versionFlag {
 		fmt.Println(aurora.Blue(version))
 		fmt.Println(aurora.Yellow(date))
+	} else {
+		flag.Usage()
 	}
-
-	flag.Usage()
 }
