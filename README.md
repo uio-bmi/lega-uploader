@@ -18,7 +18,7 @@ Alternatively, go to the [releases page](https://github.com/uio-bmi/lega-uploade
 
 ## Usage
 ```
-$ lega-uploader -help
+$ lega-uploader
 Usage of lega-uploader:
   -config
         Configure the client.
@@ -27,9 +27,9 @@ Usage of lega-uploader:
   -resumables
         List unfinished resumable uploads.
   -resume
-        Resume files or directories upload.
+        <file1|folder1> <file2|folder2> ... <fileN|folderN>     Resume files or directories upload.
   -upload
-        Upload files or directories.
+        <file1|folder1> <file2|folder2> ... <fileN|folderN>     Upload files or directories.
   -version
         Print tool version.
 ```

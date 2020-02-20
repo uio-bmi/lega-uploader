@@ -23,9 +23,9 @@ var (
 func main() {
 	configFlag := flag.Bool("config", false, "Configure the client.")
 	loginFlag := flag.Bool("login", false, "Log in.")
-	uploadFlag := flag.Bool("upload", false, "Upload files or directories.")
+	uploadFlag := flag.Bool("upload", false, "<file1|folder1> <file2|folder2> ... <fileN|folderN>\tUpload files or directories.")
 	resumablesFlag := flag.Bool("resumables", false, "List unfinished resumable uploads.")
-	resumeFlag := flag.Bool("resume", false, "Resume files or directories upload.")
+	resumeFlag := flag.Bool("resume", false, "<file1|folder1> <file2|folder2> ... <fileN|folderN>\tResume files or directories upload.")
 	versionFlag := flag.Bool("version", false, "Print tool version.")
 
 	flag.Parse()
@@ -37,11 +37,19 @@ func main() {
 		if err != nil {
 			log.Fatal(aurora.Red(err))
 		}
+		if strings.HasPrefix(instanceURL, "http://") {
+			log.Fatal(aurora.Red("http protocol is not supported, please use https"))
+		}
+		if !strings.HasPrefix(instanceURL, "https://") {
+			instanceURL = "https://" + instanceURL
+		}
+		instanceURL = strings.TrimRight(instanceURL, "/")
+
 		configurationProvider, err := conf.NewConfigurationProvider(nil)
 		if err != nil {
 			log.Fatal(aurora.Red(err))
 		}
-		configuration := conf.NewConfiguration(strings.TrimRight(instanceURL, "/"), nil)
+		configuration := conf.NewConfiguration(instanceURL, nil)
 		if err := configurationProvider.SaveConfiguration(configuration); err != nil {
 			log.Fatal(aurora.Red(err))
 		}
@@ -109,4 +117,6 @@ func main() {
 		fmt.Println(aurora.Blue(version))
 		fmt.Println(aurora.Yellow(date))
 	}
+
+	flag.Usage()
 }
