@@ -55,8 +55,11 @@ func (cp defaultConfigurationProvider) LoadConfiguration() (*Configuration, erro
 	if err != nil {
 		return nil, err
 	}
-	defer configFile.Close()
 	configFileContent, err := ioutil.ReadAll(configFile)
+	if err != nil {
+		return nil, err
+	}
+	err = configFile.Close()
 	if err != nil {
 		return nil, err
 	}

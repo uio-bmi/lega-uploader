@@ -1,18 +1,23 @@
 package main
 
 import (
-	"./auth"
-	"./conf"
-	"./resuming"
-	"./uploading"
 	"flag"
 	"fmt"
 	"github.com/logrusorgru/aurora"
+	"github.com/uio-bmi/lega-uploader/auth"
+	"github.com/uio-bmi/lega-uploader/conf"
+	"github.com/uio-bmi/lega-uploader/resuming"
+	"github.com/uio-bmi/lega-uploader/uploading"
 	"golang.org/x/crypto/ssh/terminal"
 	"log"
 	"os"
 	"strconv"
 	"strings"
+)
+
+var (
+	version = "dev"
+	date    = "unknown"
 )
 
 func main() {
@@ -21,6 +26,7 @@ func main() {
 	uploadFlag := flag.Bool("upload", false, "Upload files or directories.")
 	resumablesFlag := flag.Bool("resumables", false, "List unfinished resumable uploads.")
 	resumeFlag := flag.Bool("resume", false, "Resume files or directories upload.")
+	versionFlag := flag.Bool("version", false, "Print tool version.")
 
 	flag.Parse()
 
@@ -97,5 +103,10 @@ func main() {
 				log.Fatal(aurora.Red(err))
 			}
 		}
+	}
+
+	if *versionFlag {
+		fmt.Println(aurora.Blue(version))
+		fmt.Println(aurora.Yellow(date))
 	}
 }

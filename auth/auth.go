@@ -1,9 +1,9 @@
 package auth
 
 import (
-	"../conf"
-	"../requests"
 	"errors"
+	"github.com/uio-bmi/lega-uploader/conf"
+	"github.com/uio-bmi/lega-uploader/requests"
 	"io/ioutil"
 	"net/http"
 )
@@ -45,11 +45,14 @@ func (am defaultAuthenticationManager) Authenticate(username string, password st
 	if err != nil {
 		return err
 	}
-	defer response.Body.Close()
 	if response.StatusCode != 200 {
 		return errors.New("Authentication failure")
 	}
 	body, err := ioutil.ReadAll(response.Body)
+	if err != nil {
+		return err
+	}
+	err = response.Body.Close()
 	if err != nil {
 		return err
 	}

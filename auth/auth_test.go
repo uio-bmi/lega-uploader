@@ -1,8 +1,8 @@
 package auth
 
 import (
-	"../conf"
-	"../requests"
+	"github.com/uio-bmi/lega-uploader/conf"
+	"github.com/uio-bmi/lega-uploader/requests"
 	"io"
 	"io/ioutil"
 	"net/http"

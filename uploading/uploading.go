@@ -1,9 +1,6 @@
 package uploading
 
 import (
-	"../conf"
-	"../requests"
-	"../resuming"
 	"bytes"
 	"crypto/md5"
 	"encoding/hex"
@@ -12,6 +9,9 @@ import (
 	"github.com/buger/jsonparser"
 	"github.com/cheggaaa/pb/v3"
 	"github.com/logrusorgru/aurora"
+	"github.com/uio-bmi/lega-uploader/conf"
+	"github.com/uio-bmi/lega-uploader/requests"
+	"github.com/uio-bmi/lega-uploader/resuming"
 	"io"
 	"io/ioutil"
 	"net/http"
@@ -24,7 +24,7 @@ import (
 type Uploader interface {
 	Upload(path string, resume bool) error
 	uploadFolder(folder *os.File, resume bool) error
-	uploadFile(file *os.File, stat os.FileInfo, uploadId *string, offset int64, startChunk int64) error
+	uploadFile(file *os.File, stat os.FileInfo, uploadID *string, offset int64, startChunk int64) error
 }
 
 type defaultUploader struct {
@@ -80,23 +80,21 @@ func (u defaultUploader) Upload(path string, resume bool) error {
 	}
 	if stat.IsDir() {
 		return u.uploadFolder(file, resume)
-	} else {
-		if resume {
-			fileName := filepath.Base(file.Name())
-			resumablesList, err := u.resumablesManager.GetResumables()
-			if err != nil {
-				return err
-			}
-			for _, resumable := range *resumablesList {
-				if resumable.Name == fileName {
-					return u.uploadFile(file, stat, &resumable.Id, resumable.Size, resumable.Chunk)
-				}
-			}
-			return nil
-		} else {
-			return u.uploadFile(file, stat, nil, 0, 1)
-		}
 	}
+	if resume {
+		fileName := filepath.Base(file.Name())
+		resumablesList, err := u.resumablesManager.GetResumables()
+		if err != nil {
+			return err
+		}
+		for _, resumable := range *resumablesList {
+			if resumable.Name == fileName {
+				return u.uploadFile(file, stat, &resumable.ID, resumable.Size, resumable.Chunk)
+			}
+		}
+		return nil
+	}
+	return u.uploadFile(file, stat, nil, 0, 1)
 }
 
 func (u defaultUploader) uploadFolder(folder *os.File, resume bool) error {
@@ -117,7 +115,7 @@ func (u defaultUploader) uploadFolder(folder *os.File, resume bool) error {
 	return nil
 }
 
-func (u defaultUploader) uploadFile(file *os.File, stat os.FileInfo, uploadId *string, offset int64, startChunk int64) error {
+func (u defaultUploader) uploadFile(file *os.File, stat os.FileInfo, uploadID *string, offset int64, startChunk int64) error {
 	totalSize := stat.Size()
 	fmt.Println(aurora.Blue("Uploading file: " + file.Name() + " (" + strconv.FormatInt(totalSize, 10) + " bytes)"))
 	bar := pb.StartNew(100)
@@ -149,7 +147,7 @@ func (u defaultUploader) uploadFile(file *os.File, stat os.FileInfo, uploadId *s
 			"chunk": strconv.FormatInt(i, 10),
 			"md5":   hex.EncodeToString(sum[:16])}
 		if i != 1 {
-			params["uploadId"] = *uploadId
+			params["uploadId"] = *uploadID
 		}
 		response, err := u.client.DoRequest(http.MethodPatch,
 			*configuration.InstanceURL+"/stream/"+url.QueryEscape(fileName),
@@ -161,8 +159,6 @@ func (u defaultUploader) uploadFile(file *os.File, stat os.FileInfo, uploadId *s
 		if err != nil {
 			return err
 		}
-		//noinspection GoDeferInLoop
-		defer response.Body.Close()
 		if response.StatusCode != 200 {
 			return errors.New(response.Status)
 		}
@@ -170,10 +166,14 @@ func (u defaultUploader) uploadFile(file *os.File, stat os.FileInfo, uploadId *s
 		if err != nil {
 			return err
 		}
-		if uploadId == nil {
-			uploadId = new(string)
+		err = response.Body.Close()
+		if err != nil {
+			return err
 		}
-		*uploadId, err = jsonparser.GetString(body, "id")
+		if uploadID == nil {
+			uploadID = new(string)
+		}
+		*uploadID, err = jsonparser.GetString(body, "id")
 		if err != nil {
 			return err
 		}
@@ -190,7 +190,7 @@ func (u defaultUploader) uploadFile(file *os.File, stat os.FileInfo, uploadId *s
 		*configuration.InstanceURL+"/stream/"+url.QueryEscape(fileName),
 		nil,
 		map[string]string{"Authorization": "Bearer " + *configuration.InstanceToken},
-		map[string]string{"uploadId": *uploadId,
+		map[string]string{"uploadId": *uploadID,
 			"chunk":    "end",
 			"fileSize": strconv.FormatInt(totalSize, 10),
 			"md5":      checksum},
@@ -199,9 +199,12 @@ func (u defaultUploader) uploadFile(file *os.File, stat os.FileInfo, uploadId *s
 	if err != nil {
 		return err
 	}
-	defer response.Body.Close()
 	if response.StatusCode != 200 {
 		return errors.New(response.Status)
+	}
+	err = response.Body.Close()
+	if err != nil {
+		return err
 	}
 	bar.Finish()
 	return nil

@@ -1,17 +1,17 @@
 package resuming
 
 import (
-	"../conf"
-	"../requests"
 	"errors"
 	"github.com/buger/jsonparser"
+	"github.com/uio-bmi/lega-uploader/conf"
+	"github.com/uio-bmi/lega-uploader/requests"
 	"io/ioutil"
 	"net/http"
 	"strings"
 )
 
 type Resumable struct {
-	Id    string
+	ID    string
 	Name  string
 	Size  int64
 	Chunk int64
@@ -60,11 +60,14 @@ func (rm defaultResumablesManager) GetResumables() (*[]Resumable, error) {
 	if err != nil {
 		return nil, err
 	}
-	defer response.Body.Close()
 	if response.StatusCode != 200 {
 		return nil, errors.New(response.Status)
 	}
 	body, err := ioutil.ReadAll(response.Body)
+	if err != nil {
+		return nil, err
+	}
+	err = response.Body.Close()
 	if err != nil {
 		return nil, err
 	}

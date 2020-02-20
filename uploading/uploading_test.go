@@ -1,11 +1,11 @@
 package uploading
 
 import (
-	"../conf"
-	"../requests"
-	"../resuming"
 	"fmt"
 	"github.com/logrusorgru/aurora"
+	"github.com/uio-bmi/lega-uploader/conf"
+	"github.com/uio-bmi/lega-uploader/requests"
+	"github.com/uio-bmi/lega-uploader/resuming"
 	"io"
 	"io/ioutil"
 	"log"

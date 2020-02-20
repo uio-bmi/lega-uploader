@@ -1,8 +1,8 @@
 package resuming
 
 import (
-	"../conf"
-	"../requests"
+	"github.com/uio-bmi/lega-uploader/conf"
+	"github.com/uio-bmi/lega-uploader/requests"
 	"io"
 	"io/ioutil"
 	"net/http"
@@ -57,7 +57,7 @@ func TestGetResumables(t *testing.T) {
 		t.Error()
 	}
 	resumable := (*resumables)[0]
-	if resumable.Id != "1" || resumable.Name != "test.enc" || resumable.Size != 100 || resumable.Chunk != 11 {
+	if resumable.ID != "1" || resumable.Name != "test.enc" || resumable.Size != 100 || resumable.Chunk != 11 {
 		t.Error()
 	}
 }
