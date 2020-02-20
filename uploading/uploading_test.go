@@ -22,7 +22,6 @@ var file *os.File
 func TestMain(m *testing.M) {
 	setup()
 	code := m.Run()
-	teardown()
 	os.Exit(code)
 }
 
@@ -46,15 +45,8 @@ func setup() {
 	if err != nil {
 		log.Fatal(aurora.Red(err))
 	}
-	dir, err = ioutil.TempDir(".", "test")
-	if err != nil {
-		log.Fatal(aurora.Red(err))
-	}
-	file, err = ioutil.TempFile(dir, "test.dat")
-	if err != nil {
-		log.Fatal(aurora.Red(err))
-	}
-	err = file.Truncate(1e7)
+	dir = "../test"
+	file, err = os.Open("../test/sample.txt.enc")
 	if err != nil {
 		log.Fatal(aurora.Red(err))
 	}
@@ -94,14 +86,7 @@ func (mockClient) DoRequest(_ string, url string, _ io.Reader, _ map[string]stri
 		chunk := params["chunk"]
 		if chunk == "1" {
 			checksum := params["md5"]
-			if checksum != "5f363e0e58a95f06cbe9bbc662c5dfb6" {
-				body := ioutil.NopCloser(strings.NewReader(""))
-				response = http.Response{StatusCode: 500, Body: body}
-				return &response, nil
-			}
-		} else if chunk == "2" {
-			checksum := params["md5"]
-			if checksum != "443b86c26729f5f24407c7236957d653" {
+			if checksum != "da385d93ae510bc91c9c8af7e670ac6f" {
 				body := ioutil.NopCloser(strings.NewReader(""))
 				response = http.Response{StatusCode: 500, Body: body}
 				return &response, nil
@@ -109,7 +94,7 @@ func (mockClient) DoRequest(_ string, url string, _ io.Reader, _ map[string]stri
 		} else if chunk == "end" {
 			checksum := params["md5"]
 			fileSize := params["fileSize"]
-			if checksum != "d41d8cd98f00b204e9800998ecf8427e" || fileSize != "10000000" {
+			if checksum != "d41d8cd98f00b204e9800998ecf8427e" || fileSize != "65688" {
 				body := ioutil.NopCloser(strings.NewReader(""))
 				response = http.Response{StatusCode: 500, Body: body}
 				return &response, nil
@@ -131,18 +116,7 @@ func TestUploadFile(t *testing.T) {
 
 func TestUploadFolder(t *testing.T) {
 	err := uploader.Upload(dir, false)
-	if err != nil {
+	if err == nil || err.Error() != "not a Crypt4GH file" {
 		t.Error(err)
-	}
-}
-
-func teardown() {
-	err := os.Remove(file.Name())
-	if err != nil {
-		log.Fatal(aurora.Red(err))
-	}
-	err = os.Remove(dir)
-	if err != nil {
-		log.Fatal(aurora.Red(err))
 	}
 }

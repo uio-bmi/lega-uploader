@@ -9,6 +9,7 @@ import (
 	"fmt"
 	"github.com/buger/jsonparser"
 	"github.com/cheggaaa/pb/v3"
+	"github.com/elixir-oslo/crypt4gh/model/headers"
 	"github.com/logrusorgru/aurora"
 	"github.com/uio-bmi/lega-uploader/conf"
 	"github.com/uio-bmi/lega-uploader/requests"
@@ -120,6 +121,9 @@ func (u defaultUploader) uploadFolder(folder *os.File, resume bool) error {
 }
 
 func (u defaultUploader) uploadFile(file *os.File, stat os.FileInfo, uploadID *string, offset int64, startChunk int64) error {
+	if err := isCrypt4GHFile(file); err != nil {
+		return err
+	}
 	totalSize := stat.Size()
 	fmt.Println(aurora.Blue("Uploading file: " + file.Name() + " (" + strconv.FormatInt(totalSize, 10) + " bytes)"))
 	bar := pb.StartNew(100)
@@ -212,4 +216,21 @@ func (u defaultUploader) uploadFile(file *os.File, stat os.FileInfo, uploadID *s
 	}
 	bar.Finish()
 	return nil
+}
+
+func isCrypt4GHFile(file *os.File) error {
+	_, err := headers.ReadHeader(file)
+	if err != nil {
+		return err
+	}
+	err = file.Close()
+	if err != nil {
+		return err
+	}
+	reopenedFile, err := os.Open(file.Name())
+	if err != nil {
+		return err
+	}
+	*file = *reopenedFile
+	return err
 }
