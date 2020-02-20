@@ -1,26 +1,35 @@
 # lega-uploader
 [![Build Status](https://github.com/uio-bmi/lega-uploader/workflows/Go/badge.svg)](https://github.com/uio-bmi/lega-uploader/actions)
+[![GoDoc](https://godoc.org/github.com/uio-bmi/lega-uploader?status.svg)](https://godoc.org/github.com/uio-bmi/lega-uploader)
 [![CodeFactor](https://www.codefactor.io/repository/github/uio-bmi/lega-uploader/badge)](https://www.codefactor.io/repository/github/uio-bmi/lega-uploader)
+[![Go Report Card](https://goreportcard.com/badge/github.com/uio-bmi/lega-uploader)](https://goreportcard.com/report/github.com/uio-bmi/lega-uploader)
 [![codecov](https://codecov.io/gh/uio-bmi/lega-uploader/branch/master/graph/badge.svg)](https://codecov.io/gh/uio-bmi/lega-uploader)
+[![Dependabot Status](https://api.dependabot.com/badges/status?host=github&repo=uio-bmi/lega-uploader)](https://dependabot.com)
 
 [![DeepSource](https://static.deepsource.io/deepsource-badge-light.svg)](https://deepsource.io/gh/uio-bmi/lega-uploader/?ref=repository-badge)
 
 ## Installation
+To install the latest version of the console app you can use the following one-liner (assuming you are using `bash`):
 ```
-sudo curl -L "https://github.com/uio-bmi/lega-uploader/releases/download/v0.0.4/lega-uploader_$(uname -s)_$(uname -m)" -o /usr/local/bin/lega-uploader && sudo chmod +x /usr/local/bin/lega-uploader
+curl -fsSL https://raw.githubusercontent.com/uio-bmi/lega-uploader/master/install.sh | sh
 ```
+
+Alternatively, go to the [releases page](https://github.com/uio-bmi/lega-uploader/releases) and download the desired binary manually (for example, `.exe` file for Windows).
 
 ## Usage
 ```
+$ lega-uploader -help
 Usage of lega-uploader:
   -config
-    	Configure the client.
+        Configure the client.
   -login
-    	Log in.
+        Log in.
   -resumables
-    	List unfinished resumable uploads.
+        List unfinished resumable uploads.
   -resume
-    	Resume files or directories upload.
+        Resume files or directories upload.
   -upload
-    	Upload files or directories.
+        Upload files or directories.
+  -version
+        Print tool version.
 ```
