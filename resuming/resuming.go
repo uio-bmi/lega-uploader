@@ -1,3 +1,4 @@
+// Package resuming contains structures and methods for listing or resuming uploads.
 package resuming
 
 import (
@@ -10,6 +11,7 @@ import (
 	"strings"
 )
 
+// Resumable structure represents resumable upload.
 type Resumable struct {
 	ID    string
 	Name  string
@@ -17,6 +19,7 @@ type Resumable struct {
 	Chunk int64
 }
 
+// ResumablesManager interface provides method for listing resumable uploads.
 type ResumablesManager interface {
 	GetResumables() (*[]Resumable, error)
 }
@@ -26,6 +29,7 @@ type defaultResumablesManager struct {
 	client                requests.Client
 }
 
+// NewResumablesManager constructs ResumablesManager using ConfigurationProvider and possibly requests.Client.
 func NewResumablesManager(configurationProvider *conf.ConfigurationProvider, client *requests.Client) (ResumablesManager, error) {
 	resumablesManager := defaultResumablesManager{}
 	if configurationProvider != nil {
@@ -45,6 +49,7 @@ func NewResumablesManager(configurationProvider *conf.ConfigurationProvider, cli
 	return resumablesManager, nil
 }
 
+// GetResumables method lists resumable uploads.
 func (rm defaultResumablesManager) GetResumables() (*[]Resumable, error) {
 	configuration, err := rm.configurationProvider.LoadConfiguration()
 	if err != nil {

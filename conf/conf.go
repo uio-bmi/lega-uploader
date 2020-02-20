@@ -1,3 +1,4 @@
+// Package conf contains structure and methods to create/load configuration for the application.
 package conf
 
 import (
@@ -7,6 +8,7 @@ import (
 	"path/filepath"
 )
 
+// Configuration structure is a holder for application settings.
 type Configuration struct {
 	InstanceURL *string
 
@@ -16,6 +18,7 @@ type Configuration struct {
 	ChunkSize *int64
 }
 
+// NewConfiguration constructs Configuration, accepting LocalEGA URL instance and possibly chunk size.
 func NewConfiguration(instanceURL string, chunkSize *int64) Configuration {
 	configuration := Configuration{InstanceURL: &instanceURL}
 	if chunkSize != nil {
@@ -27,6 +30,7 @@ func NewConfiguration(instanceURL string, chunkSize *int64) Configuration {
 	return configuration
 }
 
+// ConfigurationProvider is an interface providing methods for reading and writing configuration.
 type ConfigurationProvider interface {
 	LoadConfiguration() (*Configuration, error)
 	SaveConfiguration(configuration Configuration) error
@@ -36,6 +40,7 @@ type defaultConfigurationProvider struct {
 	configFile string
 }
 
+// NewConfigurationProvider constructs ConfigurationProvider from a path to the config-file.
 func NewConfigurationProvider(configFile *string) (ConfigurationProvider, error) {
 	configurationProvider := defaultConfigurationProvider{}
 	if configFile != nil {
@@ -50,6 +55,7 @@ func NewConfigurationProvider(configFile *string) (ConfigurationProvider, error)
 	return configurationProvider, nil
 }
 
+// LoadConfiguration methods loads the configuration from a file, returning Configuration structure.
 func (cp defaultConfigurationProvider) LoadConfiguration() (*Configuration, error) {
 	configFile, err := os.Open(cp.configFile)
 	if err != nil {
@@ -70,6 +76,7 @@ func (cp defaultConfigurationProvider) LoadConfiguration() (*Configuration, erro
 	return &configuration, nil
 }
 
+// Save configuration serializes Configuration structure to a file.
 func (cp defaultConfigurationProvider) SaveConfiguration(configuration Configuration) error {
 	bytes, err := json.Marshal(configuration)
 	if err != nil {

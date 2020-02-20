@@ -1,3 +1,4 @@
+// Package uploading contains structure and methods for uploading files towards LocalEGA instance.
 package uploading
 
 import (
@@ -21,6 +22,7 @@ import (
 	"strconv"
 )
 
+// Uploader interface provides methods for uploading files towards LocalEGA instance.
 type Uploader interface {
 	Upload(path string, resume bool) error
 	uploadFolder(folder *os.File, resume bool) error
@@ -33,6 +35,7 @@ type defaultUploader struct {
 	resumablesManager     resuming.ResumablesManager
 }
 
+// NewUploader method constructs Uploader structure.
 func NewUploader(configurationProvider *conf.ConfigurationProvider, client *requests.Client, resumablesManager *resuming.ResumablesManager) (Uploader, error) {
 	uploader := defaultUploader{}
 	if configurationProvider != nil {
@@ -61,6 +64,7 @@ func NewUploader(configurationProvider *conf.ConfigurationProvider, client *requ
 	return uploader, nil
 }
 
+// Upload method uploads file or folder to LocalEGA.
 func (u defaultUploader) Upload(path string, resume bool) error {
 	var err error
 	if !filepath.IsAbs(path) {

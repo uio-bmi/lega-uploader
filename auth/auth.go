@@ -1,3 +1,4 @@
+// Package auth contains AuthenticationManager used to authenticate against LocalEGA instance.
 package auth
 
 import (
@@ -8,6 +9,7 @@ import (
 	"net/http"
 )
 
+// AuthenticationManager interface provides method for authenticating against LocalEGA instance.
 type AuthenticationManager interface {
 	Authenticate(username string, password string) error
 }
@@ -17,6 +19,7 @@ type defaultAuthenticationManager struct {
 	client                requests.Client
 }
 
+// NewAuthenticationManager constructs AuthenticationManager from ConfigurationProvider and possibly custom http client.
 func NewAuthenticationManager(configurationProvider *conf.ConfigurationProvider, client *requests.Client) (AuthenticationManager, error) {
 	authenticationManager := defaultAuthenticationManager{}
 	if configurationProvider != nil {
@@ -36,6 +39,7 @@ func NewAuthenticationManager(configurationProvider *conf.ConfigurationProvider,
 	return authenticationManager, nil
 }
 
+// Authenticate method authenticates against LocalEGA instance.
 func (am defaultAuthenticationManager) Authenticate(username string, password string) error {
 	configuration, err := am.configurationProvider.LoadConfiguration()
 	if err != nil {
