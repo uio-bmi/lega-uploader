@@ -16,6 +16,8 @@ github.com/dchest/bcrypt_pbkdf v0.0.0-20150205184540-83f37f9c154a h1:saTgr5tMLFn
 github.com/dchest/bcrypt_pbkdf v0.0.0-20150205184540-83f37f9c154a/go.mod h1:Bw9BbhOJVNR+t0jCqx2GC6zv0TGBsShs56Y3gfSCvl0=
 github.com/elixir-oslo/crypt4gh v0.0.1 h1:vJO+IiTdYtQXFd/XlSlC+/2gLMZ3IsqcjcWlq/jbeHo=
 github.com/elixir-oslo/crypt4gh v0.0.1/go.mod h1:fz1q3AAg8eRJeKX8t0vZtEbCo+2SX5FFkRF/SX+qtSg=
+github.com/elixir-oslo/crypt4gh v0.0.2 h1:DLSeNocNq7oXduWij8du1oTV63GpmzNi2xRZLl7Ilug=
+github.com/elixir-oslo/crypt4gh v0.0.2/go.mod h1:fz1q3AAg8eRJeKX8t0vZtEbCo+2SX5FFkRF/SX+qtSg=
 github.com/fatih/color v1.7.0 h1:DkWD4oS2D8LGGgTQ6IvwJJXSL5Vp2ffcQg58nFV38Ys=
 github.com/fatih/color v1.7.0/go.mod h1:Zm6kSWBoL9eyXnKyktHP6abPY2pDugNf5KwzbycvMj4=
 github.com/jessevdk/go-flags v1.4.0 h1:4IU2WS7AumrZ/40jfhf4QVDMsQwqA7VEHozFRrGARJA=
