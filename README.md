@@ -9,12 +9,19 @@
 [![DeepSource](https://static.deepsource.io/deepsource-badge-light.svg)](https://deepsource.io/gh/uio-bmi/lega-uploader/?ref=repository-badge)
 
 ## Installation
-To install the latest version of the console app you can use the following one-liner (assuming you are using `bash`):
+
+### Linux
+```
+curl -fsSL https://raw.githubusercontent.com/uio-bmi/lega-uploader/master/install.sh | sudo sh
+```
+
+### MacOS
 ```
 curl -fsSL https://raw.githubusercontent.com/uio-bmi/lega-uploader/master/install.sh | sh
 ```
 
-Alternatively, go to the [releases page](https://github.com/uio-bmi/lega-uploader/releases) and download the desired binary manually (for example, `.exe` file for Windows).
+### Windows
+Go to the [releases page](https://github.com/uio-bmi/lega-uploader/releases) and download the binary manually.
 
 ## Usage
 ```
