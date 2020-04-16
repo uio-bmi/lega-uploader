@@ -1,6 +1,6 @@
 # lega-uploader
 [![Build Status](https://github.com/uio-bmi/lega-uploader/workflows/Go/badge.svg)](https://github.com/uio-bmi/lega-uploader/actions)
-[![GoDoc](https://godoc.org/github.com/uio-bmi/lega-uploader?status.svg)](https://godoc.org/github.com/uio-bmi/lega-uploader)
+[![GoDoc](https://godoc.org/github.com/uio-bmi/lega-uploader?status.svg)](https://pkg.go.dev/github.com/uio-bmi/lega-uploader?tab=subdirectories)
 [![CodeFactor](https://www.codefactor.io/repository/github/uio-bmi/lega-uploader/badge)](https://www.codefactor.io/repository/github/uio-bmi/lega-uploader)
 [![Go Report Card](https://goreportcard.com/badge/github.com/uio-bmi/lega-uploader)](https://goreportcard.com/report/github.com/uio-bmi/lega-uploader)
 [![codecov](https://codecov.io/gh/uio-bmi/lega-uploader/branch/master/graph/badge.svg)](https://codecov.io/gh/uio-bmi/lega-uploader)
