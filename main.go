@@ -1,3 +1,5 @@
+// Package main is the main package of lega-uploader command-line tool, containing "config", "login", "upload",
+// "resumables" and "resume" commands implementations along with additional helper methods.
 package main
 
 import (
