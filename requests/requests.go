@@ -32,10 +32,8 @@ func (c defaultClient) DoRequest(method string, url string, body io.Reader, head
 	if err != nil {
 		return nil, err
 	}
-	if headers != nil {
-		for name, header := range headers {
-			request.Header.Add(name, header)
-		}
+	for name, header := range headers {
+		request.Header.Add(name, header)
 	}
 	if params != nil {
 		query := request.URL.Query()
