@@ -3,7 +3,6 @@ package uploading
 import (
 	"fmt"
 	"github.com/logrusorgru/aurora"
-	"github.com/uio-bmi/lega-uploader/conf"
 	"github.com/uio-bmi/lega-uploader/requests"
 	"github.com/uio-bmi/lega-uploader/resuming"
 	"io"
@@ -22,26 +21,22 @@ var file *os.File
 func TestMain(m *testing.M) {
 	setup()
 	code := m.Run()
+	teardown()
 	os.Exit(code)
 }
 
 func setup() {
 	var err error
-	var configurationProvider conf.ConfigurationProvider = &mockConfigurationProvider{}
-	var defaultChunk = int64(5)
-	newConfiguration := conf.NewConfiguration("http://localhost/", &defaultChunk)
-	token := "token"
-	newConfiguration.InstanceToken = &token
-	err = configurationProvider.SaveConfiguration(newConfiguration)
-	if err != nil {
-		log.Fatal(aurora.Red(err))
-	}
+	_ = os.Setenv("CENTRAL_EGA_USERNAME", "user")
+	_ = os.Setenv("CENTRAL_EGA_PASSWORD", "pass")
+	_ = os.Setenv("LOCAL_EGA_INSTANCE_URL", "http://localhost/")
+	_ = os.Setenv("ELIXIR_AAI_TOKEN", "token")
 	var client requests.Client = mockClient{}
-	resumablesManager, err := resuming.NewResumablesManager(&configurationProvider, &client)
+	resumablesManager, err := resuming.NewResumablesManager(&client)
 	if err != nil {
 		log.Fatal(aurora.Red(err))
 	}
-	uploader, err = NewUploader(&configurationProvider, &client, &resumablesManager)
+	uploader, err = NewUploader(&client, &resumablesManager)
 	if err != nil {
 		log.Fatal(aurora.Red(err))
 	}
@@ -52,26 +47,17 @@ func setup() {
 	}
 }
 
-type mockConfigurationProvider struct {
-	configuration *conf.Configuration
-}
-
-func (cp mockConfigurationProvider) LoadConfiguration() (*conf.Configuration, error) {
-	return cp.configuration, nil
-}
-
-func (cp *mockConfigurationProvider) SaveConfiguration(configuration conf.Configuration) error {
-	cp.configuration = &configuration
-	return nil
-}
-
 type mockClient struct {
 }
 
-func (mockClient) DoRequest(_ string, url string, _ io.Reader, _ map[string]string, params map[string]string, _ *string, _ *string) (*http.Response, error) {
+func (mockClient) DoRequest(_ string, url string, _ io.Reader, headers map[string]string, params map[string]string, username string, password string) (*http.Response, error) {
+	var response http.Response
+	if username != "user" || password != "pass" || !strings.HasPrefix(headers["Proxy-Authorization"], "Bearer ") {
+		body := ioutil.NopCloser(strings.NewReader(""))
+		response = http.Response{StatusCode: 401, Body: body}
+		return &response, nil
+	}
 	if strings.Contains(url, "/stream") {
-		var response http.Response
-		fmt.Printf("%v\n", params)
 		var id string
 		var ok bool
 		id, ok = params["id"]
@@ -119,4 +105,11 @@ func TestUploadFolder(t *testing.T) {
 	if err == nil || err.Error() != "not a Crypt4GH file" {
 		t.Error(err)
 	}
+}
+
+func teardown() {
+	_ = os.Unsetenv("CENTRAL_EGA_USERNAME")
+	_ = os.Unsetenv("CENTRAL_EGA_PASSWORD")
+	_ = os.Unsetenv("LOCAL_EGA_INSTANCE_URL")
+	_ = os.Unsetenv("ELIXIR_AAI_TOKEN")
 }

@@ -8,7 +8,7 @@ import (
 
 // Client is an interface providing DoRequest method for performing HTTP requests towards LocalEGA instance.
 type Client interface {
-	DoRequest(method string, url string, body io.Reader, headers map[string]string, params map[string]string, username *string, password *string) (*http.Response, error)
+	DoRequest(method string, url string, body io.Reader, headers map[string]string, params map[string]string, username string, password string) (*http.Response, error)
 }
 
 type defaultClient struct {
@@ -27,7 +27,7 @@ func NewClient(client *http.Client) Client {
 }
 
 // DoRequest method can perform different HTTP requests with different parameters towards LocalEGA instance.
-func (c defaultClient) DoRequest(method string, url string, body io.Reader, headers map[string]string, params map[string]string, username *string, password *string) (*http.Response, error) {
+func (c defaultClient) DoRequest(method string, url string, body io.Reader, headers map[string]string, params map[string]string, username string, password string) (*http.Response, error) {
 	request, err := http.NewRequest(method, url, body)
 	if err != nil {
 		return nil, err
@@ -44,8 +44,8 @@ func (c defaultClient) DoRequest(method string, url string, body io.Reader, head
 		}
 		request.URL.RawQuery = query.Encode()
 	}
-	if username != nil && password != nil {
-		request.SetBasicAuth(*username, *password)
-	}
+
+	request.SetBasicAuth(username, password)
+
 	return c.client.Do(request)
 }

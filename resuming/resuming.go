@@ -25,22 +25,12 @@ type ResumablesManager interface {
 }
 
 type defaultResumablesManager struct {
-	configurationProvider conf.ConfigurationProvider
-	client                requests.Client
+	client requests.Client
 }
 
-// NewResumablesManager constructs ResumablesManager using ConfigurationProvider and possibly requests.Client.
-func NewResumablesManager(configurationProvider *conf.ConfigurationProvider, client *requests.Client) (ResumablesManager, error) {
+// NewResumablesManager constructs ResumablesManager using requests.Client.
+func NewResumablesManager(client *requests.Client) (ResumablesManager, error) {
 	resumablesManager := defaultResumablesManager{}
-	if configurationProvider != nil {
-		resumablesManager.configurationProvider = *configurationProvider
-	} else {
-		newConfigurationProvider, err := conf.NewConfigurationProvider(nil)
-		if err != nil {
-			return nil, err
-		}
-		resumablesManager.configurationProvider = newConfigurationProvider
-	}
 	if client != nil {
 		resumablesManager.client = *client
 	} else {
@@ -51,17 +41,14 @@ func NewResumablesManager(configurationProvider *conf.ConfigurationProvider, cli
 
 // GetResumables method lists resumable uploads.
 func (rm defaultResumablesManager) GetResumables() (*[]Resumable, error) {
-	configuration, err := rm.configurationProvider.LoadConfiguration()
-	if err != nil {
-		return nil, err
-	}
+	configuration := conf.NewConfiguration()
 	response, err := rm.client.DoRequest(http.MethodGet,
-		*configuration.InstanceURL+"/resumables",
+		configuration.GetLocalEGAInstanceURL()+"/resumables",
 		nil,
-		map[string]string{"Authorization": "Bearer " + *configuration.InstanceToken},
+		map[string]string{"Proxy-Authorization": "Bearer " + configuration.GetElixirAAIToken()},
 		nil,
-		nil,
-		nil)
+		configuration.GetCentralEGAUsername(),
+		configuration.GetCentralEGAPassword())
 	if err != nil {
 		return nil, err
 	}

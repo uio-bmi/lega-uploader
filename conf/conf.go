@@ -2,88 +2,79 @@
 package conf
 
 import (
-	"encoding/json"
-	"io/ioutil"
+	"github.com/logrusorgru/aurora"
+	"log"
 	"os"
-	"path/filepath"
+	"strconv"
+	"sync"
 )
 
-// Configuration structure is a holder for application settings.
-type Configuration struct {
-	InstanceURL *string
+const defaultChunkSize = 200
 
-	InstanceToken *string
-	AaiToken      *string
+var once sync.Once
+var instance defaultConfiguration
 
-	ChunkSize *int64
+// Configuration interface is a holder for application settings.
+type Configuration interface {
+	GetCentralEGAUsername() string
+	GetCentralEGAPassword() string
+	GetLocalEGAInstanceURL() string
+	GetElixirAAIToken() string
+	GetChunkSize() int
+}
+
+// defaultConfiguration structure is a default implementation of the Configuration interface.
+type defaultConfiguration struct {
+}
+
+func (dc defaultConfiguration) GetCentralEGAUsername() string {
+	centralEGAUsername := os.Getenv("CENTRAL_EGA_USERNAME")
+	if centralEGAUsername == "" {
+		log.Fatal(aurora.Red("CENTRAL_EGA_USERNAME environment variable is not set"))
+	}
+	return centralEGAUsername
+}
+
+func (dc defaultConfiguration) GetCentralEGAPassword() string {
+	centralEGAPassword := os.Getenv("CENTRAL_EGA_PASSWORD")
+	if centralEGAPassword == "" {
+		log.Fatal(aurora.Red("CENTRAL_EGA_PASSWORD environment variable is not set"))
+	}
+	return centralEGAPassword
+}
+
+func (dc defaultConfiguration) GetLocalEGAInstanceURL() string {
+	localEGAInstanceURL := os.Getenv("LOCAL_EGA_INSTANCE_URL")
+	if localEGAInstanceURL == "" {
+		log.Fatal(aurora.Red("LOCAL_EGA_INSTANCE_URL environment variable is not set"))
+	}
+	return localEGAInstanceURL
+}
+
+func (dc defaultConfiguration) GetElixirAAIToken() string {
+	elixirAAIToken := os.Getenv("ELIXIR_AAI_TOKEN")
+	if elixirAAIToken == "" {
+		log.Fatal(aurora.Red("ELIXIR_AAI_TOKEN environment variable is not set"))
+	}
+	return elixirAAIToken
+}
+
+func (dc defaultConfiguration) GetChunkSize() int {
+	chunkSize := os.Getenv("LEGA_UPLOADER_CHUNK_SIZE")
+	if chunkSize == "" {
+		return defaultChunkSize
+	}
+	numericChunkSize, err := strconv.Atoi(chunkSize)
+	if err != nil {
+		return defaultChunkSize
+	}
+	return numericChunkSize
 }
 
 // NewConfiguration constructs Configuration, accepting LocalEGA URL instance and possibly chunk size.
-func NewConfiguration(instanceURL string, chunkSize *int64) Configuration {
-	configuration := Configuration{InstanceURL: &instanceURL}
-	if chunkSize != nil {
-		configuration.ChunkSize = chunkSize
-	} else {
-		var defaultChunkSize int64 = 200
-		configuration.ChunkSize = &defaultChunkSize
-	}
-	return configuration
-}
-
-// ConfigurationProvider is an interface providing methods for reading and writing configuration.
-type ConfigurationProvider interface {
-	LoadConfiguration() (*Configuration, error)
-	SaveConfiguration(configuration Configuration) error
-}
-
-type defaultConfigurationProvider struct {
-	configFile string
-}
-
-// NewConfigurationProvider constructs ConfigurationProvider from a path to the config-file.
-func NewConfigurationProvider(configFile *string) (ConfigurationProvider, error) {
-	configurationProvider := defaultConfigurationProvider{}
-	if configFile != nil {
-		configurationProvider.configFile = *configFile
-	} else {
-		userCacheDir, err := os.UserCacheDir()
-		if err != nil {
-			return nil, err
-		}
-		configurationProvider.configFile = filepath.Join(userCacheDir, "lega-uploader", "config.json")
-	}
-	return configurationProvider, nil
-}
-
-// LoadConfiguration methods loads the configuration from a file, returning Configuration structure.
-func (cp defaultConfigurationProvider) LoadConfiguration() (*Configuration, error) {
-	configFile, err := os.Open(cp.configFile)
-	if err != nil {
-		return nil, err
-	}
-	configFileContent, err := ioutil.ReadAll(configFile)
-	if err != nil {
-		return nil, err
-	}
-	err = configFile.Close()
-	if err != nil {
-		return nil, err
-	}
-	var configuration Configuration
-	if err = json.Unmarshal(configFileContent, &configuration); err != nil {
-		return nil, err
-	}
-	return &configuration, nil
-}
-
-// Save configuration serializes Configuration structure to a file.
-func (cp defaultConfigurationProvider) SaveConfiguration(configuration Configuration) error {
-	bytes, err := json.Marshal(configuration)
-	if err != nil {
-		return err
-	}
-	if err = ioutil.WriteFile(cp.configFile, bytes, os.ModePerm); err != nil {
-		return err
-	}
-	return nil
+func NewConfiguration() Configuration {
+	once.Do(func() {
+		instance = defaultConfiguration{}
+	})
+	return instance
 }

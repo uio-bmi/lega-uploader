@@ -31,23 +31,13 @@ type Uploader interface {
 }
 
 type defaultUploader struct {
-	configurationProvider conf.ConfigurationProvider
-	client                requests.Client
-	resumablesManager     resuming.ResumablesManager
+	client            requests.Client
+	resumablesManager resuming.ResumablesManager
 }
 
 // NewUploader method constructs Uploader structure.
-func NewUploader(configurationProvider *conf.ConfigurationProvider, client *requests.Client, resumablesManager *resuming.ResumablesManager) (Uploader, error) {
+func NewUploader(client *requests.Client, resumablesManager *resuming.ResumablesManager) (Uploader, error) {
 	uploader := defaultUploader{}
-	if configurationProvider != nil {
-		uploader.configurationProvider = *configurationProvider
-	} else {
-		newConfigurationProvider, err := conf.NewConfigurationProvider(nil)
-		if err != nil {
-			return nil, err
-		}
-		uploader.configurationProvider = newConfigurationProvider
-	}
 	if client != nil {
 		uploader.client = *client
 	} else {
@@ -56,7 +46,7 @@ func NewUploader(configurationProvider *conf.ConfigurationProvider, client *requ
 	if resumablesManager != nil {
 		uploader.resumablesManager = *resumablesManager
 	} else {
-		newResumablesManager, err := resuming.NewResumablesManager(&uploader.configurationProvider, &uploader.client)
+		newResumablesManager, err := resuming.NewResumablesManager(&uploader.client)
 		if err != nil {
 			return nil, err
 		}
@@ -129,18 +119,15 @@ func (u defaultUploader) uploadFile(file *os.File, stat os.FileInfo, uploadID *s
 	bar := pb.StartNew(100)
 	bar.SetCurrent(offset * 100 / totalSize)
 	bar.Start()
-	configuration, err := u.configurationProvider.LoadConfiguration()
-	if err != nil {
-		return err
-	}
+	configuration := conf.NewConfiguration()
 
 	fileName := filepath.Base(file.Name())
 
-	_, err = file.Seek(offset, 0)
+	_, err := file.Seek(offset, 0)
 	if err != nil {
 		return err
 	}
-	buffer := make([]byte, *configuration.ChunkSize*1024*1024)
+	buffer := make([]byte, configuration.GetChunkSize()*1024*1024)
 	for i := startChunk; true; i++ {
 		read, err := file.Read(buffer)
 		if err != nil {
@@ -158,12 +145,12 @@ func (u defaultUploader) uploadFile(file *os.File, stat os.FileInfo, uploadID *s
 			params["uploadId"] = *uploadID
 		}
 		response, err := u.client.DoRequest(http.MethodPatch,
-			*configuration.InstanceURL+"/stream/"+url.QueryEscape(fileName),
+			configuration.GetLocalEGAInstanceURL()+"/stream/"+url.QueryEscape(fileName),
 			bytes.NewReader(chunk),
-			map[string]string{"Authorization": "Bearer " + *configuration.InstanceToken},
+			map[string]string{"Proxy-Authorization": "Bearer " + configuration.GetElixirAAIToken()},
 			params,
-			nil,
-			nil)
+			configuration.GetCentralEGAUsername(),
+			configuration.GetCentralEGAPassword())
 		if err != nil {
 			return err
 		}
@@ -195,15 +182,15 @@ func (u defaultUploader) uploadFile(file *os.File, stat os.FileInfo, uploadID *s
 	}
 	checksum := hex.EncodeToString(hashFunction.Sum(nil)[:16])
 	response, err := u.client.DoRequest(http.MethodPatch,
-		*configuration.InstanceURL+"/stream/"+url.QueryEscape(fileName),
+		configuration.GetLocalEGAInstanceURL()+"/stream/"+url.QueryEscape(fileName),
 		nil,
-		map[string]string{"Authorization": "Bearer " + *configuration.InstanceToken},
+		map[string]string{"Proxy-Authorization": "Bearer " + configuration.GetElixirAAIToken()},
 		map[string]string{"uploadId": *uploadID,
 			"chunk":    "end",
 			"fileSize": strconv.FormatInt(totalSize, 10),
 			"md5":      checksum},
-		nil,
-		nil)
+		configuration.GetCentralEGAUsername(),
+		configuration.GetCentralEGAPassword())
 	if err != nil {
 		return err
 	}

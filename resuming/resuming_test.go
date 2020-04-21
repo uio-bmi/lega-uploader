@@ -1,32 +1,19 @@
 package resuming
 
 import (
-	"github.com/uio-bmi/lega-uploader/conf"
 	"github.com/uio-bmi/lega-uploader/requests"
 	"io"
 	"io/ioutil"
 	"net/http"
+	"os"
 	"strings"
 	"testing"
 )
 
-type mockConfigurationProvider struct {
-	configuration *conf.Configuration
-}
-
-func (cp mockConfigurationProvider) LoadConfiguration() (*conf.Configuration, error) {
-	return cp.configuration, nil
-}
-
-func (cp *mockConfigurationProvider) SaveConfiguration(configuration conf.Configuration) error {
-	cp.configuration = &configuration
-	return nil
-}
-
 type mockClient struct {
 }
 
-func (mockClient) DoRequest(_ string, url string, _ io.Reader, _ map[string]string, _ map[string]string, _ *string, _ *string) (*http.Response, error) {
+func (mockClient) DoRequest(_ string, url string, _ io.Reader, _ map[string]string, _ map[string]string, _ string, _ string) (*http.Response, error) {
 	if strings.HasSuffix(url, "/resumables") {
 		body := ioutil.NopCloser(strings.NewReader(`{"resumables": [{"id": "1", "fileName": "dummy-test.enc", "nextOffset": 100, "maxChunk": 10}]}`))
 		response := http.Response{StatusCode: 200, Body: body}
@@ -36,16 +23,12 @@ func (mockClient) DoRequest(_ string, url string, _ io.Reader, _ map[string]stri
 }
 
 func TestGetResumables(t *testing.T) {
-	var configurationProvider conf.ConfigurationProvider = &mockConfigurationProvider{}
-	newConfiguration := conf.NewConfiguration("http://localhost/", nil)
-	token := "token"
-	newConfiguration.InstanceToken = &token
-	err := configurationProvider.SaveConfiguration(newConfiguration)
-	if err != nil {
-		t.Error(err)
-	}
+	_ = os.Setenv("CENTRAL_EGA_USERNAME", "user")
+	_ = os.Setenv("CENTRAL_EGA_PASSWORD", "pass")
+	_ = os.Setenv("LOCAL_EGA_INSTANCE_URL", "http://localhost/")
+	_ = os.Setenv("ELIXIR_AAI_TOKEN", "token")
 	var client requests.Client = mockClient{}
-	resumablesManager, err := NewResumablesManager(&configurationProvider, &client)
+	resumablesManager, err := NewResumablesManager(&client)
 	if err != nil {
 		t.Error(err)
 	}

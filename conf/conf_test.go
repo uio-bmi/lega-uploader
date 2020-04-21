@@ -1,14 +1,9 @@
 package conf
 
 import (
-	"github.com/logrusorgru/aurora"
-	"io/ioutil"
-	"log"
 	"os"
 	"testing"
 )
-
-var configFile *os.File
 
 func TestMain(m *testing.M) {
 	setup()
@@ -18,86 +13,78 @@ func TestMain(m *testing.M) {
 }
 
 func setup() {
-	var err error
-	configFile, err = ioutil.TempFile(".", "config.json")
-	if err != nil {
-		log.Fatal(aurora.Red(err))
-	}
+	_ = os.Setenv("CENTRAL_EGA_USERNAME", "1")
+	_ = os.Setenv("CENTRAL_EGA_PASSWORD", "2")
+	_ = os.Setenv("LOCAL_EGA_INSTANCE_URL", "3")
+	_ = os.Setenv("ELIXIR_AAI_TOKEN", "4")
 }
 
-func TestNewConfigurationInstanceURL(t *testing.T) {
-	configuration := NewConfiguration("test", nil)
-	if *configuration.InstanceURL != "test" {
+//func TestNewConfigurationSameInstance(t *testing.T) {
+//	configuration1 := NewConfiguration()
+//	configuration2 := NewConfiguration()
+//	println(configuration1)
+//	println(configuration2)
+//	if &configuration1 != &configuration2 {
+//		t.Error()
+//	}
+//}
+
+func TestGetCentralEGAUsername(t *testing.T) {
+	configuration := NewConfiguration()
+	if configuration.GetCentralEGAUsername() != "1" {
 		t.Error()
 	}
 }
 
-func TestNewConfigurationEmptyChunkSize(t *testing.T) {
-	configuration := NewConfiguration("test", nil)
-	if *configuration.ChunkSize != 200 {
+func TestGetCentralEGAPassword(t *testing.T) {
+	configuration := NewConfiguration()
+	if configuration.GetCentralEGAPassword() != "2" {
 		t.Error()
 	}
 }
 
-func TestNewConfigurationFilledChunkSize(t *testing.T) {
-	defaultChunkSize := int64(1)
-	configuration := NewConfiguration("test", &defaultChunkSize)
-	if *configuration.ChunkSize != defaultChunkSize {
+func TestGetLocalEGAInstanceURL(t *testing.T) {
+	configuration := NewConfiguration()
+	if configuration.GetLocalEGAInstanceURL() != "3" {
 		t.Error()
 	}
 }
 
-func TestLoadConfigurationAbsent(t *testing.T) {
-	filePath := "test"
-	configurationProvider, err := NewConfigurationProvider(&filePath)
-	if err != nil {
-		t.Error(err)
-	}
-	_, err = configurationProvider.LoadConfiguration()
-	if err == nil {
-		t.Error(err)
+func TestGetElixirAAIToken(t *testing.T) {
+	configuration := NewConfiguration()
+	if configuration.GetElixirAAIToken() != "4" {
+		t.Error()
 	}
 }
 
-func TestLoadConfigurationMalformed(t *testing.T) {
-	filePath := "conf.go"
-	configurationProvider, err := NewConfigurationProvider(&filePath)
-	if err != nil {
-		t.Error(err)
-	}
-	_, err = configurationProvider.LoadConfiguration()
-	if err == nil {
-		t.Error(err)
+func TestNewConfigurationDefaultChunkSize(t *testing.T) {
+	configuration := NewConfiguration()
+	if configuration.GetChunkSize() != 200 {
+		t.Error()
 	}
 }
 
-func TestSaveLoadConfigurationSuccess(t *testing.T) {
-	filePath := configFile.Name()
-	configurationProvider, err := NewConfigurationProvider(&filePath)
-	if err != nil {
-		t.Error(err)
-	}
-	defaultChunkSize := int64(1)
-	newConfiguration := NewConfiguration("test", &defaultChunkSize)
-	err = configurationProvider.SaveConfiguration(newConfiguration)
-	if err != nil {
-		t.Error(err)
-	}
-	configuration, err := configurationProvider.LoadConfiguration()
-	if err != nil {
-		t.Error(err)
-	}
-	if *configuration.InstanceURL != "test" {
+func TestNewConfigurationNonDefaultChunkSize(t *testing.T) {
+	_ = os.Setenv("LEGA_UPLOADER_CHUNK_SIZE", "100")
+	configuration := NewConfiguration()
+	if configuration.GetChunkSize() != 100 {
 		t.Error()
 	}
-	if *configuration.ChunkSize != 1 {
+	_ = os.Unsetenv("LEGA_UPLOADER_CHUNK_SIZE")
+}
+
+func TestNewConfigurationNonNumericChunkSize(t *testing.T) {
+	_ = os.Setenv("LEGA_UPLOADER_CHUNK_SIZE", "test")
+	configuration := NewConfiguration()
+	if configuration.GetChunkSize() != 200 {
 		t.Error()
 	}
+	_ = os.Unsetenv("LEGA_UPLOADER_CHUNK_SIZE")
 }
 
 func teardown() {
-	err := os.Remove(configFile.Name())
-	if err != nil {
-		log.Fatal(aurora.Red(err))
-	}
+	_ = os.Unsetenv("CENTRAL_EGA_USERNAME")
+	_ = os.Unsetenv("CENTRAL_EGA_PASSWORD")
+	_ = os.Unsetenv("LOCAL_EGA_INSTANCE_URL")
+	_ = os.Unsetenv("ELIXIR_AAI_TOKEN")
 }

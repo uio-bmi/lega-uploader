@@ -52,8 +52,8 @@ func TestDoRequest(t *testing.T) {
 		strings.NewReader("Body"),
 		map[string]string{"header": "test header value"},
 		map[string]string{"param": "test param value"},
-		&username,
-		&password)
+		username,
+		password)
 	if err != nil {
 		t.Error(err)
 	}
