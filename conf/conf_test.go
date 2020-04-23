@@ -15,7 +15,7 @@ func TestMain(m *testing.M) {
 func setup() {
 	_ = os.Setenv("CENTRAL_EGA_USERNAME", "1")
 	_ = os.Setenv("CENTRAL_EGA_PASSWORD", "2")
-	_ = os.Setenv("LOCAL_EGA_INSTANCE_URL", "https://3/")
+	_ = os.Setenv("LOCAL_EGA_INSTANCE_URL", "3/")
 	_ = os.Setenv("ELIXIR_AAI_TOKEN", "4")
 }
 
@@ -45,7 +45,7 @@ func TestGetCentralEGAPassword(t *testing.T) {
 
 func TestGetLocalEGAInstanceURL(t *testing.T) {
 	configuration := NewConfiguration()
-	if configuration.GetLocalEGAInstanceURL() != "https://3" {
+	if configuration.GetLocalEGAInstanceURL() != "3" {
 		t.Error()
 	}
 }
