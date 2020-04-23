@@ -15,7 +15,7 @@ func TestMain(m *testing.M) {
 func setup() {
 	_ = os.Setenv("CENTRAL_EGA_USERNAME", "1")
 	_ = os.Setenv("CENTRAL_EGA_PASSWORD", "2")
-	_ = os.Setenv("LOCAL_EGA_INSTANCE_URL", "3")
+	_ = os.Setenv("LOCAL_EGA_INSTANCE_URL", "https://3/")
 	_ = os.Setenv("ELIXIR_AAI_TOKEN", "4")
 }
 
@@ -45,7 +45,7 @@ func TestGetCentralEGAPassword(t *testing.T) {
 
 func TestGetLocalEGAInstanceURL(t *testing.T) {
 	configuration := NewConfiguration()
-	if configuration.GetLocalEGAInstanceURL() != "3" {
+	if configuration.GetLocalEGAInstanceURL() != "https://3" {
 		t.Error()
 	}
 }
@@ -70,7 +70,6 @@ func TestNewConfigurationNonDefaultChunkSize(t *testing.T) {
 	if configuration.GetChunkSize() != 100 {
 		t.Error()
 	}
-	_ = os.Unsetenv("LEGA_UPLOADER_CHUNK_SIZE")
 }
 
 func TestNewConfigurationNonNumericChunkSize(t *testing.T) {
@@ -79,7 +78,6 @@ func TestNewConfigurationNonNumericChunkSize(t *testing.T) {
 	if configuration.GetChunkSize() != 200 {
 		t.Error()
 	}
-	_ = os.Unsetenv("LEGA_UPLOADER_CHUNK_SIZE")
 }
 
 func teardown() {
@@ -87,4 +85,5 @@ func teardown() {
 	_ = os.Unsetenv("CENTRAL_EGA_PASSWORD")
 	_ = os.Unsetenv("LOCAL_EGA_INSTANCE_URL")
 	_ = os.Unsetenv("ELIXIR_AAI_TOKEN")
+	_ = os.Unsetenv("LEGA_UPLOADER_CHUNK_SIZE")
 }
