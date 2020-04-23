@@ -49,9 +49,6 @@ func (dc defaultConfiguration) GetLocalEGAInstanceURL() string {
 	if localEGAInstanceURL == "" {
 		log.Fatal(aurora.Red("LOCAL_EGA_INSTANCE_URL environment variable is not set"))
 	}
-	if !strings.HasPrefix(localEGAInstanceURL, "https://") {
-		log.Fatal(aurora.Red("LOCAL_EGA_INSTANCE_URL must start with 'https://'"))
-	}
 	if strings.HasSuffix(localEGAInstanceURL, "/") {
 		return localEGAInstanceURL[:len(localEGAInstanceURL)-1]
 	}
