@@ -13,7 +13,7 @@ import (
 const defaultChunkSize = 200
 
 var once sync.Once
-var instance defaultConfiguration
+var instance *defaultConfiguration
 
 // Configuration interface is a holder for application settings.
 type Configuration interface {
@@ -78,7 +78,7 @@ func (dc defaultConfiguration) GetChunkSize() int {
 // NewConfiguration constructs Configuration, accepting LocalEGA URL instance and possibly chunk size.
 func NewConfiguration() Configuration {
 	once.Do(func() {
-		instance = defaultConfiguration{}
+		instance = &defaultConfiguration{}
 	})
 	return instance
 }

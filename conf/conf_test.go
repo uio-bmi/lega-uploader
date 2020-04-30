@@ -19,15 +19,15 @@ func setup() {
 	_ = os.Setenv("ELIXIR_AAI_TOKEN", "4")
 }
 
-//func TestNewConfigurationSameInstance(t *testing.T) {
-//	configuration1 := NewConfiguration()
-//	configuration2 := NewConfiguration()
-//	println(configuration1)
-//	println(configuration2)
-//	if &configuration1 != &configuration2 {
-//		t.Error()
-//	}
-//}
+func TestNewConfigurationSameInstance(t *testing.T) {
+	configuration1 := NewConfiguration()
+	configuration2 := NewConfiguration()
+	println(configuration1)
+	println(configuration2)
+	if configuration1 != configuration2 {
+		t.Error()
+	}
+}
 
 func TestGetCentralEGAUsername(t *testing.T) {
 	configuration := NewConfiguration()
