@@ -13,7 +13,7 @@ import (
 type mockClient struct {
 }
 
-func (mockClient) DoRequest(method string, url string, _ io.Reader, _ map[string]string, params map[string]string, _ string, _ string) (*http.Response, error) {
+func (mockClient) DoRequest(method, url string, _ io.Reader, _, params map[string]string, _, _ string) (*http.Response, error) {
 	if strings.HasSuffix(url, "/resumables") {
 		if method == http.MethodGet {
 			body := ioutil.NopCloser(strings.NewReader(`{"resumables": [{"id": "1", "fileName": "test.enc", "nextOffset": 100, "maxChunk": 10}]}`))
@@ -23,10 +23,9 @@ func (mockClient) DoRequest(method string, url string, _ io.Reader, _ map[string
 			if params["uploadId"] == "123" {
 				response := http.Response{StatusCode: 200}
 				return &response, nil
-			} else {
-				response := http.Response{StatusCode: 500}
-				return &response, nil
 			}
+			response := http.Response{StatusCode: 500}
+			return &response, nil
 		}
 	}
 	return nil, nil

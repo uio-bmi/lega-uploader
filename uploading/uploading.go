@@ -110,7 +110,7 @@ func (u defaultUploader) uploadFolder(folder *os.File, resume bool) error {
 	return nil
 }
 
-func (u defaultUploader) uploadFile(file *os.File, stat os.FileInfo, uploadID *string, offset int64, startChunk int64) error {
+func (u defaultUploader) uploadFile(file *os.File, stat os.FileInfo, uploadID *string, offset, startChunk int64) error {
 	if err := isCrypt4GHFile(file); err != nil {
 		return err
 	}
