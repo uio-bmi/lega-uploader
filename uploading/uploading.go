@@ -78,7 +78,7 @@ func (u defaultUploader) Upload(path string, resume bool) error {
 	}
 	if resume {
 		fileName := filepath.Base(file.Name())
-		resumablesList, err := u.resumablesManager.GetResumables()
+		resumablesList, err := u.resumablesManager.ListResumables()
 		if err != nil {
 			return err
 		}

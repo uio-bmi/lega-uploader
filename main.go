@@ -6,6 +6,7 @@ import (
 	"flag"
 	"fmt"
 	"github.com/logrusorgru/aurora"
+	"github.com/uio-bmi/lega-uploader/files"
 	"github.com/uio-bmi/lega-uploader/resuming"
 	"github.com/uio-bmi/lega-uploader/uploading"
 	"log"
@@ -19,9 +20,10 @@ var (
 )
 
 func main() {
-	uploadFlag := flag.Bool("upload", false, "<file1|folder1> <file2|folder2> ... <fileN|folderN>\tUpload files or directories.")
+	filesFlag := flag.Bool("files", false, "List uploaded files.")
 	resumablesFlag := flag.Bool("resumables", false, "List unfinished resumable uploads.")
 	resumeFlag := flag.Bool("resume", false, "<file1|folder1> <file2|folder2> ... <fileN|folderN>\tResume files or directories upload.")
+	uploadFlag := flag.Bool("upload", false, "<file1|folder1> <file2|folder2> ... <fileN|folderN>\tUpload files or directories.")
 	versionFlag := flag.Bool("version", false, "Print tool version.")
 
 	flag.Parse()
@@ -31,12 +33,24 @@ func main() {
 		if err != nil {
 			log.Fatal(aurora.Red(err))
 		}
-		resumables, err := resumablesManager.GetResumables()
+		resumables, err := resumablesManager.ListResumables()
 		if err != nil {
 			log.Fatal(aurora.Red(err))
 		}
 		for _, resumable := range *resumables {
 			fmt.Println(aurora.Blue(resumable.Name + "\t (" + strconv.FormatInt(resumable.Size, 10) + " bytes uploaded)"))
+		}
+	} else if *filesFlag {
+		fileManager, err := files.NewFileManager(nil)
+		if err != nil {
+			log.Fatal(aurora.Red(err))
+		}
+		fileList, err := fileManager.ListFiles()
+		if err != nil {
+			log.Fatal(aurora.Red(err))
+		}
+		for _, file := range *fileList {
+			fmt.Println(aurora.Blue(file.FileName + "\t (" + strconv.FormatInt(file.Size, 10) + " bytes uploaded)"))
 		}
 	} else if *uploadFlag {
 		uploader, err := uploading.NewUploader(nil, nil)

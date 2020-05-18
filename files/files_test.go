@@ -1,4 +1,4 @@
-package resuming
+package files
 
 import (
 	"github.com/uio-bmi/lega-uploader/requests"
@@ -14,13 +14,13 @@ type mockClient struct {
 }
 
 func (mockClient) DoRequest(method string, url string, _ io.Reader, _ map[string]string, params map[string]string, _ string, _ string) (*http.Response, error) {
-	if strings.HasSuffix(url, "/resumables") {
+	if strings.HasSuffix(url, "/files") {
 		if method == http.MethodGet {
-			body := ioutil.NopCloser(strings.NewReader(`{"resumables": [{"id": "1", "fileName": "test.enc", "nextOffset": 100, "maxChunk": 10}]}`))
+			body := ioutil.NopCloser(strings.NewReader(`{"files": [{"fileName": "test.enc", "size": 100, "modifiedDate": "2010"}]}`))
 			response := http.Response{StatusCode: 200, Body: body}
 			return &response, nil
 		} else if method == http.MethodDelete {
-			if params["uploadId"] == "123" {
+			if params["fileName"] == "test.enc" {
 				response := http.Response{StatusCode: 200}
 				return &response, nil
 			} else {
@@ -32,56 +32,56 @@ func (mockClient) DoRequest(method string, url string, _ io.Reader, _ map[string
 	return nil, nil
 }
 
-func TestListResumables(t *testing.T) {
+func TestListFiles(t *testing.T) {
 	_ = os.Setenv("CENTRAL_EGA_USERNAME", "user")
 	_ = os.Setenv("CENTRAL_EGA_PASSWORD", "pass")
 	_ = os.Setenv("LOCAL_EGA_INSTANCE_URL", "http://localhost/")
 	_ = os.Setenv("ELIXIR_AAI_TOKEN", "token")
 	var client requests.Client = mockClient{}
-	resumablesManager, err := NewResumablesManager(&client)
+	fileManager, err := NewFileManager(&client)
 	if err != nil {
 		t.Error(err)
 	}
-	resumables, err := resumablesManager.ListResumables()
+	fileList, err := fileManager.ListFiles()
 	if err != nil {
 		t.Error(err)
 	}
-	if resumables == nil || len(*resumables) != 1 {
+	if fileList == nil || len(*fileList) != 1 {
 		t.Error()
 	}
-	resumable := (*resumables)[0]
-	if resumable.ID != "1" || resumable.Name != "test.enc" || resumable.Size != 100 || resumable.Chunk != 11 {
+	file := (*fileList)[0]
+	if file.FileName != "test.enc" || file.Size != 100 || file.ModifiedDate != "2010" {
 		t.Error()
 	}
 }
 
-func TestDeleteResumable200(t *testing.T) {
+func TestDeleteFile200(t *testing.T) {
 	_ = os.Setenv("CENTRAL_EGA_USERNAME", "user")
 	_ = os.Setenv("CENTRAL_EGA_PASSWORD", "pass")
 	_ = os.Setenv("LOCAL_EGA_INSTANCE_URL", "http://localhost/")
 	_ = os.Setenv("ELIXIR_AAI_TOKEN", "token")
 	var client requests.Client = mockClient{}
-	resumablesManager, err := NewResumablesManager(&client)
+	fileManager, err := NewFileManager(&client)
 	if err != nil {
 		t.Error(err)
 	}
-	err = resumablesManager.DeleteResumable("123")
+	err = fileManager.DeleteFile("test.enc")
 	if err != nil {
 		t.Error(err)
 	}
 }
 
-func TestDeleteResumable500(t *testing.T) {
+func TestDeleteFile500(t *testing.T) {
 	_ = os.Setenv("CENTRAL_EGA_USERNAME", "user")
 	_ = os.Setenv("CENTRAL_EGA_PASSWORD", "pass")
 	_ = os.Setenv("LOCAL_EGA_INSTANCE_URL", "http://localhost/")
 	_ = os.Setenv("ELIXIR_AAI_TOKEN", "token")
 	var client requests.Client = mockClient{}
-	resumablesManager, err := NewResumablesManager(&client)
+	fileManager, err := NewFileManager(&client)
 	if err != nil {
 		t.Error(err)
 	}
-	err = resumablesManager.DeleteResumable("12")
+	err = fileManager.DeleteFile("12")
 	if err == nil {
 		t.Error(err)
 	}

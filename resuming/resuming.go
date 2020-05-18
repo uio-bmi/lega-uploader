@@ -8,7 +8,6 @@ import (
 	"github.com/uio-bmi/lega-uploader/requests"
 	"io/ioutil"
 	"net/http"
-	"strings"
 )
 
 // Resumable structure represents resumable upload.
@@ -19,9 +18,10 @@ type Resumable struct {
 	Chunk int64
 }
 
-// ResumablesManager interface provides method for listing resumable uploads.
+// ResumablesManager interface provides method for managing resumable uploads.
 type ResumablesManager interface {
-	GetResumables() (*[]Resumable, error)
+	ListResumables() (*[]Resumable, error)
+	DeleteResumable(uploadId string) error
 }
 
 type defaultResumablesManager struct {
@@ -39,8 +39,8 @@ func NewResumablesManager(client *requests.Client) (ResumablesManager, error) {
 	return resumablesManager, nil
 }
 
-// GetResumables method lists resumable uploads.
-func (rm defaultResumablesManager) GetResumables() (*[]Resumable, error) {
+// ListResumables method lists resumable uploads.
+func (rm defaultResumablesManager) ListResumables() (*[]Resumable, error) {
 	configuration := conf.NewConfiguration()
 	response, err := rm.client.DoRequest(http.MethodGet,
 		configuration.GetLocalEGAInstanceURL()+"/resumables",
@@ -68,7 +68,6 @@ func (rm defaultResumablesManager) GetResumables() (*[]Resumable, error) {
 		func(value []byte, dataType jsonparser.ValueType, offset int, err error) {
 			id, _ := jsonparser.GetString(value, "id")
 			fileName, _ := jsonparser.GetString(value, "fileName")
-			fileName = fileName[strings.Index(fileName, "-")+1:]
 			size, _ := jsonparser.GetInt(value, "nextOffset")
 			chunk, _ := jsonparser.GetInt(value, "maxChunk")
 			chunk++
@@ -80,4 +79,23 @@ func (rm defaultResumablesManager) GetResumables() (*[]Resumable, error) {
 		return nil, err
 	}
 	return &resumables, nil
+}
+
+// DeleteResumable method deletes resumable upload by its ID.
+func (rm defaultResumablesManager) DeleteResumable(uploadId string) error {
+	configuration := conf.NewConfiguration()
+	response, err := rm.client.DoRequest(http.MethodDelete,
+		configuration.GetLocalEGAInstanceURL()+"/resumables",
+		nil,
+		map[string]string{"Proxy-Authorization": "Bearer " + configuration.GetElixirAAIToken()},
+		map[string]string{"uploadId": uploadId},
+		configuration.GetCentralEGAUsername(),
+		configuration.GetCentralEGAPassword())
+	if err != nil {
+		return err
+	}
+	if response.StatusCode != 200 {
+		return errors.New(response.Status)
+	}
+	return nil
 }
