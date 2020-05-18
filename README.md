@@ -23,17 +23,21 @@ curl -fsSL https://raw.githubusercontent.com/uio-bmi/lega-uploader/master/instal
 ### Windows
 Go to the [releases page](https://github.com/uio-bmi/lega-uploader/releases) and download the binary manually.
 
-## Usage
+## Configuration
 Before using the app, make sure all the environment variables required for authentication are set:
 
 ```
 export CENTRAL_EGA_USERNAME=...
 export CENTRAL_EGA_PASSWORD=...
-export LOCAL_EGA_INSTANCE_URL=...
 export ELIXIR_AAI_TOKEN=...
 ```
 
-NB: `ELIXIR_AAI_TOKEN` has an expiration time of nearly two hours, so one would need to re-obtain and re-set it when it expires.
+NB: `ELIXIR_AAI_TOKEN` has an expiration time of nearly two hours, so one would need to re-obtain and re-set it upon expiration.
+
+Also, the tool is pre-configured to work with Norwegian Federated EGA instance: https://ega.elixir.no 
+If you want to specify another instance, you can set `LOCAL_EGA_INSTANCE_URL` environment variable. 
+
+## Usage
 
 ```
 $ lega-uploader

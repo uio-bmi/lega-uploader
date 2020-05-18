@@ -15,8 +15,7 @@ func TestMain(m *testing.M) {
 func setup() {
 	_ = os.Setenv("CENTRAL_EGA_USERNAME", "1")
 	_ = os.Setenv("CENTRAL_EGA_PASSWORD", "2")
-	_ = os.Setenv("LOCAL_EGA_INSTANCE_URL", "3/")
-	_ = os.Setenv("ELIXIR_AAI_TOKEN", "4")
+	_ = os.Setenv("ELIXIR_AAI_TOKEN", "3")
 }
 
 func TestNewConfigurationSameInstance(t *testing.T) {
@@ -43,23 +42,31 @@ func TestGetCentralEGAPassword(t *testing.T) {
 	}
 }
 
-func TestGetLocalEGAInstanceURL(t *testing.T) {
+func TestGetElixirAAIToken(t *testing.T) {
 	configuration := NewConfiguration()
-	if configuration.GetLocalEGAInstanceURL() != "3" {
+	if configuration.GetElixirAAIToken() != "3" {
 		t.Error()
 	}
 }
 
-func TestGetElixirAAIToken(t *testing.T) {
+func TestNewConfigurationDefaultInstanceURL(t *testing.T) {
 	configuration := NewConfiguration()
-	if configuration.GetElixirAAIToken() != "4" {
+	if configuration.GetLocalEGAInstanceURL() != defaultInstanceURL {
+		t.Error()
+	}
+}
+
+func TestNewConfigurationNonDefaultInstanceURL(t *testing.T) {
+	_ = os.Setenv("LOCAL_EGA_INSTANCE_URL", "test/")
+	configuration := NewConfiguration()
+	if configuration.GetLocalEGAInstanceURL() != "test" {
 		t.Error()
 	}
 }
 
 func TestNewConfigurationDefaultChunkSize(t *testing.T) {
 	configuration := NewConfiguration()
-	if configuration.GetChunkSize() != 200 {
+	if configuration.GetChunkSize() != defaultChunkSize {
 		t.Error()
 	}
 }
@@ -75,7 +82,7 @@ func TestNewConfigurationNonDefaultChunkSize(t *testing.T) {
 func TestNewConfigurationNonNumericChunkSize(t *testing.T) {
 	_ = os.Setenv("LEGA_UPLOADER_CHUNK_SIZE", "test")
 	configuration := NewConfiguration()
-	if configuration.GetChunkSize() != 200 {
+	if configuration.GetChunkSize() != defaultChunkSize {
 		t.Error()
 	}
 }

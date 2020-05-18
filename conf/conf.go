@@ -10,6 +10,7 @@ import (
 	"sync"
 )
 
+const defaultInstanceURL = "https://ega.elixir.no"
 const defaultChunkSize = 200
 
 var once sync.Once
@@ -47,7 +48,7 @@ func (dc defaultConfiguration) GetCentralEGAPassword() string {
 func (dc defaultConfiguration) GetLocalEGAInstanceURL() string {
 	localEGAInstanceURL := os.Getenv("LOCAL_EGA_INSTANCE_URL")
 	if localEGAInstanceURL == "" {
-		log.Fatal(aurora.Red("LOCAL_EGA_INSTANCE_URL environment variable is not set"))
+		localEGAInstanceURL = defaultInstanceURL
 	}
 	if strings.HasSuffix(localEGAInstanceURL, "/") {
 		return localEGAInstanceURL[:len(localEGAInstanceURL)-1]
