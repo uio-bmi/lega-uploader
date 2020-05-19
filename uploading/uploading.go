@@ -208,7 +208,7 @@ func (u defaultUploader) uploadFile(file *os.File, stat os.FileInfo, uploadID *s
 func isCrypt4GHFile(file *os.File) error {
 	_, err := headers.ReadHeader(file)
 	if err != nil {
-		return err
+		return errors.New(file.Name() + ": " + err.Error())
 	}
 	err = file.Close()
 	if err != nil {

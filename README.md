@@ -41,15 +41,17 @@ If you want to specify another instance, you can set `LOCAL_EGA_INSTANCE_URL` en
 
 ```
 $ lega-uploader
-Usage of lega-uploader:
-  -files
-    	List uploaded files.
-  -resumables
-    	List unfinished resumable uploads.
-  -resume
-    	<file1|folder1> <file2|folder2> ... <fileN|folderN>	Resume files or directories upload.
-  -upload
-    	<file1|folder1> <file2|folder2> ... <fileN|folderN>	Upload files or directories.
-  -version
-    	Print tool version.
+lega-uploader [files | resumables | upload] <args>
+
+ files:
+  -l, --list    Lists uploaded files
+  -d, --delete= Deletes uploaded file by name
+
+ resumables:
+  -l, --list    Lists resumable uploads
+  -d, --delete= Deletes resumable upload by ID
+
+ upload:
+  -f, --file=FILE    File or folder to upload
+  -r, --resume       Resumes interrupted upload
 ```
