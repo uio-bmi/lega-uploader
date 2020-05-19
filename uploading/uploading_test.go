@@ -102,7 +102,7 @@ func TestUploadFile(t *testing.T) {
 
 func TestUploadFolder(t *testing.T) {
 	err := uploader.Upload(dir, false)
-	if err == nil || err.Error() != "not a Crypt4GH file" {
+	if err == nil || !strings.HasSuffix(err.Error(), "not a Crypt4GH file") {
 		t.Error(err)
 	}
 }
