@@ -4,6 +4,7 @@ package uploading
 import (
 	"bytes"
 	"crypto/md5"
+	"crypto/sha256"
 	"encoding/hex"
 	"errors"
 	"fmt"
@@ -175,7 +176,7 @@ func (u defaultUploader) uploadFile(file *os.File, stat os.FileInfo, uploadID *s
 		bar.Add64(int64(read) * 100 / totalSize)
 	}
 	bar.SetCurrent(100)
-	hashFunction := md5.New()
+	hashFunction := sha256.New()
 	_, err = io.Copy(hashFunction, file)
 	if err != nil {
 		return err
@@ -188,7 +189,7 @@ func (u defaultUploader) uploadFile(file *os.File, stat os.FileInfo, uploadID *s
 		map[string]string{"uploadId": *uploadID,
 			"chunk":    "end",
 			"fileSize": strconv.FormatInt(totalSize, 10),
-			"md5":      checksum},
+			"sha256":   checksum},
 		configuration.GetCentralEGAUsername(),
 		configuration.GetCentralEGAPassword())
 	if err != nil {
