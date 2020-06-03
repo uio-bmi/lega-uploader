@@ -181,7 +181,7 @@ func (u defaultUploader) uploadFile(file *os.File, stat os.FileInfo, uploadID *s
 	if err != nil {
 		return err
 	}
-	checksum := hex.EncodeToString(hashFunction.Sum(nil)[:16])
+	checksum := hex.EncodeToString(hashFunction.Sum(nil))
 	response, err := u.client.DoRequest(http.MethodPatch,
 		configuration.GetLocalEGAInstanceURL()+"/stream/"+url.QueryEscape(fileName),
 		nil,

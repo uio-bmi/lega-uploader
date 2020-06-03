@@ -11,7 +11,7 @@ import (
 )
 
 const defaultInstanceURL = "https://ega.elixir.no"
-const defaultChunkSize = 200
+const defaultChunkSize = 50
 
 var once sync.Once
 var instance *defaultConfiguration

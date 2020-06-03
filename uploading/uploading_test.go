@@ -80,7 +80,7 @@ func (mockClient) DoRequest(_, url string, _ io.Reader, headers, params map[stri
 		} else if chunk == "end" {
 			checksum := params["sha256"]
 			fileSize := params["fileSize"]
-			if checksum != "e3b0c44298fc1c149afbf4c8996fb924" || fileSize != "65688" {
+			if checksum != "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855" || fileSize != "65688" {
 				body := ioutil.NopCloser(strings.NewReader(""))
 				response = http.Response{StatusCode: 500, Body: body}
 				return &response, nil
