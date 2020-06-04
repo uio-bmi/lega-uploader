@@ -8,7 +8,7 @@
 
 [![DeepSource](https://static.deepsource.io/deepsource-badge-light.svg)](https://deepsource.io/gh/uio-bmi/lega-uploader/?ref=repository-badge)
 
-## Installation
+## Installation / Update
 
 ### Linux
 ```
@@ -21,7 +21,7 @@ curl -fsSL https://raw.githubusercontent.com/uio-bmi/lega-uploader/master/instal
 ```
 
 ### Windows
-Go to the [releases page](https://github.com/uio-bmi/lega-uploader/releases) and download the binary manually.
+Go to the [releases page](https://github.com/uio-bmi/lega-uploader/releases) and download the latest binary manually.
 
 ## Configuration
 Before using the app, make sure all the environment variables required for authentication are set:
