@@ -25,6 +25,11 @@ var (
 )
 
 const (
+	releasesURL = "https://api.github.com/repos/uio-bmi/lega-uploader/releases/latest"
+	projectPage = "https://github.com/uio-bmi/lega-uploader"
+)
+
+const (
 	filesCommand      = "files"
 	resumablesCommand = "resumables"
 	uploadCommand     = "upload"
@@ -168,7 +173,7 @@ func generateHelpMessage() string {
 }
 
 func checkVersion() {
-	response, err := http.Get("https://api.github.com/repos/uio-bmi/lega-uploader/releases/latest")
+	response, err := http.Get(releasesURL)
 	if err != nil {
 		return
 	}
@@ -184,6 +189,6 @@ func checkVersion() {
 		return
 	}
 	fmt.Printf(aurora.Magenta("Current version: [%s], latest version: [%s]\n").String(), version, latestVersion)
-	fmt.Println(aurora.Magenta("Please, update lega-uploader from this page: https://github.com/uio-bmi/lega-uploader"))
+	fmt.Println(aurora.Magenta("Please, update lega-uploader from this page: " + projectPage))
 	os.Exit(0)
 }
