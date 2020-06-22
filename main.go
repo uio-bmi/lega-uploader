@@ -207,7 +207,7 @@ func checkVersion() {
 	}
 	defer response.Body.Close()
 	byteBody, err := ioutil.ReadAll(response.Body)
-	body := make(map[string]interface{}, 0)
+	body := make(map[string]interface{})
 	err = json.Unmarshal(byteBody, &body)
 	if err != nil {
 		return
