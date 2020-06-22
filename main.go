@@ -205,8 +205,11 @@ func checkVersion() {
 	if err != nil {
 		return
 	}
-	defer response.Body.Close()
 	byteBody, err := ioutil.ReadAll(response.Body)
+	if err != nil {
+		return
+	}
+	err = response.Body.Close()
 	if err != nil {
 		return
 	}
