@@ -13,6 +13,7 @@ import (
 	"github.com/elixir-oslo/crypt4gh/model/headers"
 	"github.com/logrusorgru/aurora"
 	"github.com/uio-bmi/lega-uploader/conf"
+	"github.com/uio-bmi/lega-uploader/files"
 	"github.com/uio-bmi/lega-uploader/requests"
 	"github.com/uio-bmi/lega-uploader/resuming"
 	"io"
@@ -33,16 +34,26 @@ type Uploader interface {
 
 type defaultUploader struct {
 	client            requests.Client
+	fileManager       files.FileManager
 	resumablesManager resuming.ResumablesManager
 }
 
 // NewUploader method constructs Uploader structure.
-func NewUploader(client *requests.Client, resumablesManager *resuming.ResumablesManager) (Uploader, error) {
+func NewUploader(client *requests.Client, fileManager *files.FileManager, resumablesManager *resuming.ResumablesManager) (Uploader, error) {
 	uploader := defaultUploader{}
 	if client != nil {
 		uploader.client = *client
 	} else {
 		uploader.client = requests.NewClient(nil)
+	}
+	if fileManager != nil {
+		uploader.fileManager = *fileManager
+	} else {
+		newFileManager, err := files.NewFileManager(&uploader.client)
+		if err != nil {
+			return nil, err
+		}
+		uploader.fileManager = newFileManager
 	}
 	if resumablesManager != nil {
 		uploader.resumablesManager = *resumablesManager
@@ -58,13 +69,6 @@ func NewUploader(client *requests.Client, resumablesManager *resuming.Resumables
 
 // Upload method uploads file or folder to LocalEGA.
 func (u defaultUploader) Upload(path string, resume bool) error {
-	var err error
-	if !filepath.IsAbs(path) {
-		path, err = filepath.Abs(path)
-		if err != nil {
-			return err
-		}
-	}
 	file, err := os.Open(path)
 	if err != nil {
 		return err
@@ -112,7 +116,17 @@ func (u defaultUploader) uploadFolder(folder *os.File, resume bool) error {
 }
 
 func (u defaultUploader) uploadFile(file *os.File, stat os.FileInfo, uploadID *string, offset, startChunk int64) error {
-	if err := isCrypt4GHFile(file); err != nil {
+	fileName := filepath.Base(file.Name())
+	filesList, err := u.fileManager.ListFiles()
+	if err != nil {
+		return err
+	}
+	for _, uploadedFile := range *filesList {
+		if fileName == filepath.Base(uploadedFile.FileName) {
+			return errors.New("File " + file.Name() + " is already uploaded. Please, remove it from the Inbox first: lega-uploader files -d " + filepath.Base(uploadedFile.FileName))
+		}
+	}
+	if err = isCrypt4GHFile(file); err != nil {
 		return err
 	}
 	totalSize := stat.Size()
@@ -121,10 +135,7 @@ func (u defaultUploader) uploadFile(file *os.File, stat os.FileInfo, uploadID *s
 	bar.SetCurrent(offset * 100 / totalSize)
 	bar.Start()
 	configuration := conf.NewConfiguration()
-
-	fileName := filepath.Base(file.Name())
-
-	_, err := file.Seek(offset, 0)
+	_, err = file.Seek(offset, 0)
 	if err != nil {
 		return err
 	}

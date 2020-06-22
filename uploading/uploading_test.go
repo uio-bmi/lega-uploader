@@ -3,6 +3,7 @@ package uploading
 import (
 	"fmt"
 	"github.com/logrusorgru/aurora"
+	"github.com/uio-bmi/lega-uploader/files"
 	"github.com/uio-bmi/lega-uploader/requests"
 	"github.com/uio-bmi/lega-uploader/resuming"
 	"io"
@@ -17,6 +18,7 @@ import (
 var uploader Uploader
 var dir string
 var file *os.File
+var existingFile *os.File
 
 func TestMain(m *testing.M) {
 	setup()
@@ -32,16 +34,24 @@ func setup() {
 	_ = os.Setenv("LOCAL_EGA_INSTANCE_URL", "http://localhost/")
 	_ = os.Setenv("ELIXIR_AAI_TOKEN", "token")
 	var client requests.Client = mockClient{}
+	filesManager, err := files.NewFileManager(&client)
+	if err != nil {
+		log.Fatal(aurora.Red(err))
+	}
 	resumablesManager, err := resuming.NewResumablesManager(&client)
 	if err != nil {
 		log.Fatal(aurora.Red(err))
 	}
-	uploader, err = NewUploader(&client, &resumablesManager)
+	uploader, err = NewUploader(&client, &filesManager, &resumablesManager)
 	if err != nil {
 		log.Fatal(aurora.Red(err))
 	}
-	dir = "../test"
-	file, err = os.Open("../test/sample.txt.enc")
+	dir = "../test/files"
+	file, err = os.Open("../test/files/sample.txt.enc")
+	if err != nil {
+		log.Fatal(aurora.Red(err))
+	}
+	existingFile, err = os.Open("../test/test.enc")
 	if err != nil {
 		log.Fatal(aurora.Red(err))
 	}
@@ -55,6 +65,11 @@ func (mockClient) DoRequest(_, url string, _ io.Reader, headers, params map[stri
 	if username != "user" || password != "pass" || !strings.HasPrefix(headers["Proxy-Authorization"], "Bearer ") {
 		body := ioutil.NopCloser(strings.NewReader(""))
 		response = http.Response{StatusCode: 401, Body: body}
+		return &response, nil
+	}
+	if strings.HasSuffix(url, "/files") {
+		body := ioutil.NopCloser(strings.NewReader(`{"files": [{"fileName": "test.enc", "size": 100, "modifiedDate": "2010"}]}`))
+		response := http.Response{StatusCode: 200, Body: body}
 		return &response, nil
 	}
 	if strings.Contains(url, "/stream") {
@@ -91,6 +106,13 @@ func (mockClient) DoRequest(_, url string, _ io.Reader, headers, params map[stri
 		return &response, nil
 	}
 	return nil, nil
+}
+
+func TestUploadedFileExists(t *testing.T) {
+	err := uploader.Upload(existingFile.Name(), false)
+	if err == nil {
+		t.Error()
+	}
 }
 
 func TestUploadFile(t *testing.T) {

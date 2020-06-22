@@ -21,7 +21,7 @@ type Resumable struct {
 // ResumablesManager interface provides method for managing resumable uploads.
 type ResumablesManager interface {
 	ListResumables() (*[]Resumable, error)
-	DeleteResumable(uploadId string) error
+	DeleteResumable(uploadID string) error
 }
 
 type defaultResumablesManager struct {
@@ -82,13 +82,13 @@ func (rm defaultResumablesManager) ListResumables() (*[]Resumable, error) {
 }
 
 // DeleteResumable method deletes resumable upload by its ID.
-func (rm defaultResumablesManager) DeleteResumable(uploadId string) error {
+func (rm defaultResumablesManager) DeleteResumable(uploadID string) error {
 	configuration := conf.NewConfiguration()
 	response, err := rm.client.DoRequest(http.MethodDelete,
 		configuration.GetLocalEGAInstanceURL()+"/resumables",
 		nil,
 		map[string]string{"Proxy-Authorization": "Bearer " + configuration.GetElixirAAIToken()},
-		map[string]string{"uploadId": uploadId},
+		map[string]string{"uploadId": uploadID},
 		configuration.GetCentralEGAUsername(),
 		configuration.GetCentralEGAPassword())
 	if err != nil {

@@ -17,6 +17,7 @@ import (
 	"os"
 	"strconv"
 	"strings"
+	"text/tabwriter"
 )
 
 var (
@@ -90,8 +91,20 @@ func main() {
 			if err != nil {
 				log.Fatal(aurora.Red(err))
 			}
+			tw := tabwriter.NewWriter(os.Stdout, 0, 0, 1, ' ', tabwriter.TabIndent)
+			_, err = fmt.Fprintln(tw, aurora.Blue("File name\t File size"))
+			if err != nil {
+				log.Fatal(aurora.Red(err))
+			}
 			for _, file := range *fileList {
-				fmt.Println(aurora.Blue(file.FileName + "\t (" + strconv.FormatInt(file.Size, 10) + " bytes uploaded)"))
+				_, err = fmt.Fprintln(tw, aurora.Blue(file.FileName+"\t "+strconv.FormatInt(file.Size, 10)+" bytes"))
+				if err != nil {
+					log.Fatal(aurora.Red(err))
+				}
+			}
+			err = tw.Flush()
+			if err != nil {
+				log.Fatal(aurora.Red(err))
 			}
 		} else if filesOptions.Delete != "" {
 			err = fileManager.DeleteFile(filesOptions.Delete)
@@ -117,8 +130,20 @@ func main() {
 			if err != nil {
 				log.Fatal(aurora.Red(err))
 			}
+			tw := tabwriter.NewWriter(os.Stdout, 0, 0, 1, ' ', tabwriter.TabIndent)
+			_, err = fmt.Fprintln(tw, aurora.Blue("File name\t File size\t Resumable ID"))
+			if err != nil {
+				log.Fatal(aurora.Red(err))
+			}
 			for _, resumable := range *resumables {
-				fmt.Println(aurora.Blue(resumable.Name + "\t (" + strconv.FormatInt(resumable.Size, 10) + " bytes uploaded)" + "\t ID: " + resumable.ID))
+				_, err := fmt.Fprintln(tw, aurora.Blue(resumable.Name+"\t "+strconv.FormatInt(resumable.Size, 10)+" bytes"+"\t "+resumable.ID))
+				if err != nil {
+					log.Fatal(aurora.Red(err))
+				}
+			}
+			err = tw.Flush()
+			if err != nil {
+				log.Fatal(aurora.Red(err))
 			}
 		} else if resumablesOptions.Delete != "" {
 			err = resumablesManager.DeleteResumable(resumablesOptions.Delete)
@@ -135,7 +160,7 @@ func main() {
 		if err != nil {
 			log.Fatal(aurora.Red(err))
 		}
-		uploader, err := uploading.NewUploader(nil, nil)
+		uploader, err := uploading.NewUploader(nil, nil, nil)
 		if err != nil {
 			log.Fatal(aurora.Red(err))
 		}
@@ -173,6 +198,9 @@ func generateHelpMessage() string {
 }
 
 func checkVersion() {
+	if version == "dev" {
+		return
+	}
 	response, err := http.Get(releasesURL)
 	if err != nil {
 		return
