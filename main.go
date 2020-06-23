@@ -4,16 +4,13 @@ package main
 
 import (
 	"bytes"
-	"encoding/json"
 	"fmt"
 	"github.com/jessevdk/go-flags"
 	"github.com/logrusorgru/aurora"
 	"github.com/uio-bmi/lega-uploader/files"
 	"github.com/uio-bmi/lega-uploader/resuming"
 	"github.com/uio-bmi/lega-uploader/uploading"
-	"io/ioutil"
 	"log"
-	"net/http"
 	"os"
 	"strconv"
 	"strings"
@@ -63,8 +60,6 @@ const (
 )
 
 func main() {
-	checkVersion()
-
 	args := os.Args
 	if len(args) == 1 || args[1] == "-h" || args[1] == "--help" {
 		fmt.Println(generateHelpMessage())
@@ -195,34 +190,4 @@ func generateHelpMessage() string {
 	uploadingUsage = strings.Replace(uploadingUsage, applicationOptions, " "+uploadCommand, 1)
 
 	return header + filesUsage + resumablesUsage + uploadingUsage
-}
-
-func checkVersion() {
-	if version == "dev" {
-		return
-	}
-	response, err := http.Get(releasesURL)
-	if err != nil {
-		return
-	}
-	byteBody, err := ioutil.ReadAll(response.Body)
-	if err != nil {
-		return
-	}
-	err = response.Body.Close()
-	if err != nil {
-		return
-	}
-	body := make(map[string]interface{})
-	err = json.Unmarshal(byteBody, &body)
-	if err != nil {
-		return
-	}
-	latestVersion := strings.TrimLeft(body["name"].(string), "v")
-	if version == latestVersion {
-		return
-	}
-	fmt.Printf(aurora.Magenta("Current version: [%s], latest version: [%s]\n").String(), version, latestVersion)
-	fmt.Println(aurora.Magenta("Please, update lega-uploader from this page: " + projectPage))
-	os.Exit(0)
 }
