@@ -63,7 +63,7 @@ func (rm defaultFileManager) ListFiles() (*[]File, error) {
 		return nil, err
 	}
 	files := make([]File, 0)
-	_, err = jsonparser.ArrayEach(body,
+	_, _ = jsonparser.ArrayEach(body,
 		func(value []byte, dataType jsonparser.ValueType, offset int, err error) {
 			fileName, _ := jsonparser.GetString(value, "fileName")
 			size, _ := jsonparser.GetInt(value, "size")
@@ -72,9 +72,6 @@ func (rm defaultFileManager) ListFiles() (*[]File, error) {
 			files = append(files, file)
 		},
 		"files")
-	if err != nil {
-		return nil, err
-	}
 	return &files, nil
 }
 
